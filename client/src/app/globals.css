@@ -1,0 +1,62 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+	font-family: "pilowlava";
+	src: URL("/fonts/pilowlava/Fonts/webfonts/Pilowlava-Regular.woff2")
+		format("woff2");
+}
+@font-face {
+	font-family: "spacegrotesk";
+	src: URL("/fonts/space-grotesk-1.1.4/webfont/SpaceGrotesk-Regular.woff2")
+		format("woff2");
+	src: URL("/fonts/space-grotesk-1.1.4/webfont/SpaceGrotesk-Bold.woff2")
+		format("woff2");
+	src: URL("/fonts/space-grotesk-1.1.4/webfont/SpaceGrotesk-Light.woff2")
+		format("woff2");
+	src: URL("/fonts/space-grotesk-1.1.4/webfont/SpaceGrotesk-Medium.woff2")
+		format("woff2");
+	src: URL("/fonts/space-grotesk-1.1.4/webfont/SpaceGrotesk-SemiBold.woff2")
+		format("woff2");
+}
+
+@font-face {
+	font-family: "space-mono";
+	src: URL("/fonts/space-mono/SpaceMono-Regular.ttf") format("truetype");
+}
+
+@font-face {
+	font-family: "uncut-sans";
+	src: URL("/fonts/uncut-sans/Webfonts/UncutSans-Regular.woff2") format("woff2");
+}
+
+:root {
+	--primary: #ff5053;
+	--highlight: #fef2ff;
+	--accent-1: #b2aaff;
+	--accent-2: #6a5fdb;
+	--accent-3: #261a66;
+	--accent-4: #29114c;
+	--accent-5: #190b2f;
+	--background: #0f000a;
+}
+
+@layer base {
+	h1,
+	h2,
+	h3,
+	h4,
+	h5,
+	h6 {
+		@apply font-headline text-primary;
+	}
+
+	input {
+		@apply border-2 border-accent-1 bg-transparent;
+	}
+
+	html {
+		@apply bg-background font-body text-highlight;
+	}
+}
