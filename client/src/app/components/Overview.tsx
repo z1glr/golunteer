@@ -1,39 +1,20 @@
 "use client";
 
 import { AddLarge, CloseLarge } from "@carbon/icons-react";
-import Event, { EventData } from "./Event/Event";
+import Event from "./Event/Event";
 import { useState } from "react";
 import AddEvent from "./Event/AddEvent";
 import Button from "./Button";
+import zustand from "./Zustand";
 
 export default function EventVolunteer() {
-	const events: EventData[] = [
-		{
-			id: 0,
-			date: new Date("2025-01-05"),
-			tasks: {
-				"0": "Mark",
-			},
-			description: "neuer Prädikant",
-		},
-		{
-			id: 1,
-			date: new Date("2025-01-12"),
-			tasks: {
-				"0": "Mark",
-				"1": undefined,
-			},
-			description: "",
-		},
-	];
-
-	const [showAddItemDialogue, setShowAddItemDialogue] = useState(true);
+	const [showAddItemDialogue, setShowAddItemDialogue] = useState(false);
 
 	return (
 		<div className="relative flex-1 p-4">
 			<h2 className="mb-4 text-center text-4xl">Overview</h2>
 			<div className="flex flex-wrap justify-center gap-4">
-				{events.map((ee) => Event(ee))}
+				{zustand.getState().events.map((ee) => Event(ee))}
 			</div>
 
 			<Button
@@ -54,7 +35,10 @@ export default function EventVolunteer() {
 					}}
 				>
 					<div className="relative">
-						<AddEvent className="border-2 border-accent-3" />
+						<AddEvent
+							className="border-2 border-accent-3"
+							onClose={() => setShowAddItemDialogue(false)}
+						/>
 						<Button
 							className="absolute right-2 top-2 aspect-square"
 							onClick={() => setShowAddItemDialogue(false)}
