@@ -6,6 +6,7 @@ import { useState } from "react";
 import AddEvent from "../components/Event/AddEvent";
 import zustand from "../Zustand";
 import { Button } from "@nextui-org/button";
+import AssignmentTable from "@/components/Event/AssignmentTable";
 
 export default function EventVolunteer() {
 	const [showAddItemDialogue, setShowAddItemDialogue] = useState(false);
@@ -14,15 +15,10 @@ export default function EventVolunteer() {
 		<div className="relative flex-1 p-4">
 			<h2 className="mb-4 text-center text-4xl">Overview</h2>
 			<div className="flex flex-wrap justify-center gap-4">
-				{zustand.getState().events.map((ee, ii) => (
-					<Event
-						key={ii}
-						date={ee.date}
-						description={ee.description}
-						id={ee.id}
-						tasks={ee.tasks}
-						volunteers={ee.volunteers}
-					/>
+				{zustand.getState().events.map((ee) => (
+					<Event key={ee.id} event={ee}>
+						<AssignmentTable tasks={ee.tasks} />
+					</Event>
 				))}
 			</div>
 

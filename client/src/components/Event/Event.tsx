@@ -1,9 +1,18 @@
+"use client";
+
 import { Card, CardBody, CardHeader } from "@nextui-org/card";
 import { Divider } from "@nextui-org/divider";
-import LocalDate from "./LocalDate";
+import LocalDate from "../LocalDate";
 import { EventData } from "@/Zustand";
+import React from "react";
 
-export default function Event(props: EventData) {
+export default function Event({
+	event,
+	children,
+}: {
+	event: EventData;
+	children?: React.ReactNode;
+}) {
 	return (
 		<Card
 			classNames={{
@@ -21,29 +30,15 @@ export default function Event(props: EventData) {
 							timeZone: "Europe/Berlin", // TODO: check with actual backend
 						}}
 					>
-						{props.date.toDate()}
+						{event.date}
 					</LocalDate>
 				</h3>
 			</CardHeader>
 			<Divider />
 			<CardBody>
-				<div>{props.description}</div>
+				<div>{event.description}</div>
 
-				<table>
-					<caption>
-						<h4>Task assignment</h4>
-					</caption>
-					<tbody>
-						{Object.entries(props.tasks).map(([task, person], ii) => (
-							<tr key={ii}>
-								<th className="pr-4 text-left">{task}</th>
-								<td>
-									{person ?? <span className="text-highlight">missing</span>}
-								</td>
-							</tr>
-						))}
-					</tbody>
-				</table>
+				{children}
 			</CardBody>
 		</Card>
 	);

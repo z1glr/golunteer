@@ -1,7 +1,7 @@
 "use client";
 
 import AddEvent from "@/components/Event/AddEvent";
-import LocalDate from "@/components/Event/LocalDate";
+import LocalDate from "@/components/LocalDate";
 import zustand, { Availability, EventData, Task, Tasks } from "@/Zustand";
 import { Add, Copy, Edit, TrashCan } from "@carbon/icons-react";
 import { Button, ButtonGroup } from "@nextui-org/button";
@@ -24,6 +24,26 @@ import {
 import { Tooltip } from "@nextui-org/tooltip";
 import { useAsyncList } from "@react-stately/data";
 import React, { Key, useState } from "react";
+
+function availability2Tailwind(availability?: Availability) {
+	switch (availability) {
+		case "yes":
+			return "";
+		default:
+			return "italic";
+	}
+}
+
+function availability2Color(availability?: Availability) {
+	switch (availability) {
+		case "yes":
+			return "default";
+		case "maybe":
+			return "warning";
+		default:
+			return "danger";
+	}
+}
 
 export default function AdminPanel() {
 	const tasks = [
@@ -70,7 +90,7 @@ export default function AdminPanel() {
 						options={{ dateStyle: "medium", timeStyle: "short" }}
 						className="font-bold"
 					>
-						{event[key].toDate()}
+						{event[key]}
 					</LocalDate>
 				);
 			case "description":
@@ -104,26 +124,6 @@ export default function AdminPanel() {
 					</div>
 				);
 			default:
-				function availability2Tailwind(availability?: Availability) {
-					switch (availability) {
-						case "yes":
-							return "";
-						default:
-							return "italic";
-					}
-				}
-
-				function availability2Color(availability?: Availability) {
-					switch (availability) {
-						case "yes":
-							return "default";
-						case "maybe":
-							return "warning";
-						default:
-							return "danger";
-					}
-				}
-
 				return (
 					<Select
 						variant="underlined"
@@ -230,7 +230,7 @@ export default function AdminPanel() {
 						The event{" "}
 						<span className="font-numbers text-accent-1">
 							<LocalDate options={{ dateStyle: "long", timeStyle: "short" }}>
-								{activeEvent.date.toDate()}
+								{activeEvent.date}
 							</LocalDate>
 						</span>{" "}
 						will be deleted.

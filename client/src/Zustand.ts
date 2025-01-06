@@ -1,8 +1,4 @@
-import {
-	DateFormatter as IntlDateFormatter,
-	parseZonedDateTime,
-	ZonedDateTime,
-} from "@internationalized/date";
+import { DateFormatter as IntlDateFormatter } from "@internationalized/date";
 import { create } from "zustand";
 
 export type Task = string;
@@ -21,7 +17,7 @@ export const Availabilities: Availability[] = ["yes", "maybe", "no"];
 
 export interface EventData {
 	id: number;
-	date: ZonedDateTime;
+	date: string;
 	tasks: Partial<Record<Task, string | undefined>>;
 	volunteers: Partial<Record<string, Availability>>;
 	description: string;
@@ -37,7 +33,7 @@ const zustand = create<Zustand>()((set) => ({
 		{
 			id: 0,
 			// date: parseDateTime("2025-01-05T11:00[Europe/Berlin]").toString(),
-			date: parseZonedDateTime("2025-01-05T11:00[Europe/Berlin]"),
+			date: "2025-01-05T11:00[Europe/Berlin]",
 			tasks: {
 				Audio: "Mark",
 				Livestream: undefined,
@@ -48,7 +44,7 @@ const zustand = create<Zustand>()((set) => ({
 		},
 		{
 			id: 1,
-			date: parseZonedDateTime("2025-01-12T11:00[Europe/Berlin]"),
+			date: "2025-01-12T11:00[Europe/Berlin]",
 			tasks: {
 				Audio: "Mark",
 				Livestream: undefined,
