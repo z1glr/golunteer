@@ -31,17 +31,6 @@
 	src: URL("/fonts/uncut-sans/Webfonts/UncutSans-Regular.woff2") format("woff2");
 }
 
-:root {
-	--primary: #ff5053;
-	--highlight: #fef2ff;
-	--accent-1: #b2aaff;
-	--accent-2: #6a5fdb;
-	--accent-3: #261a66;
-	--accent-4: #29114c;
-	--accent-5: #190b2f;
-	--background: #0f000a;
-}
-
 @layer base {
 	h1,
 	h2,
@@ -49,14 +38,10 @@
 	h4,
 	h5,
 	h6 {
-		@apply font-headline text-primary;
+		@apply font-headline text-highlight;
 	}
 
 	input {
 		@apply border-2 border-accent-1 bg-transparent;
-	}
-
-	html {
-		@apply bg-background font-body text-highlight;
 	}
 }

@@ -15,7 +15,6 @@
 	// "postCreateCommand": "yarn install",
 	"postCreateCommand": "cd client && npm install"
 
-
 	// Configure tool-specific properties.
 	// "customizations": {},
 
