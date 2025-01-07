@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { NextUIProvider } from "@nextui-org/system";
+import React from "react";
+import Footer from "./Footer";
 
 export const metadata: Metadata = {
 	title: "Create Next App",
@@ -12,6 +14,17 @@ export default function RootLayout({
 }: Readonly<{
 	children: React.ReactNode;
 }>) {
+	const footerSites = [
+		{
+			text: "Impressum",
+			href: "/impressum",
+		},
+		{
+			text: "Datenschutz",
+			href: "/datenschutz",
+		},
+	];
+
 	return (
 		<html>
 			<body className="bg-background text-foreground antialiased">
@@ -23,6 +36,9 @@ export default function RootLayout({
 							</h1>
 						</header>
 						<main className="flex min-h-full flex-1 flex-col">{children}</main>
+						<footer className="flex h-4 justify-center gap-4">
+							<Footer sites={footerSites} />
+						</footer>
 					</div>
 				</NextUIProvider>
 			</body>
