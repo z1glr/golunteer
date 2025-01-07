@@ -1,4 +1,4 @@
-package main
+package config
 
 import (
 	"bytes"
@@ -19,6 +19,9 @@ type ConfigYaml struct {
 		Password string `yaml:"password"`
 		Database string `yaml:"database"`
 	} `yaml:"database"`
+	Server struct {
+		Port int `yaml:"port"`
+	} `yaml:"server"`
 	ClientSession struct {
 		JwtSignature string `yaml:"jwt_signature"`
 		Expire       string `yaml:"expire"`
@@ -30,9 +33,9 @@ type CacheConfig struct {
 	Purge      time.Duration
 }
 
-var config ConfigYaml
+var YamlConfig ConfigYaml
 
-func loadConfig() ConfigYaml {
+func _loadConfig() ConfigYaml {
 	config := ConfigYaml{}
 
 	yamlFile, err := os.ReadFile(CONFIG_PATH)
@@ -53,12 +56,12 @@ func loadConfig() ConfigYaml {
 	return config
 }
 
-func writeConfig() {
+func WriteConfig() {
 	buf := bytes.Buffer{}
 	enc := yaml.NewEncoder(&buf)
 	enc.SetIndent(2)
 	// Can set default indent here on the encoder
-	if err := enc.Encode(&config); err != nil {
+	if err := enc.Encode(&YamlConfig); err != nil {
 		panic(err)
 	} else {
 		if err := os.WriteFile(CONFIG_PATH, buf.Bytes(), 0644); err != nil {
@@ -68,5 +71,5 @@ func writeConfig() {
 }
 
 func init() {
-	config = loadConfig()
+	YamlConfig = _loadConfig()
 }

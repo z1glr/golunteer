@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/go-sql-driver/mysql"
+	_config "github.com/johannesbuehl/golunteer/setup/pkg/config"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -29,6 +30,8 @@ func exit(e error) {
 }
 
 func main() {
+	config := &_config.YamlConfig
+
 	fmt.Println("connecting to database")
 
 	// connect to the database
@@ -114,5 +117,5 @@ func main() {
 	config.ClientSession.JwtSignature = createPassword(100)
 
 	// write the modified config-file
-	writeConfig()
+	_config.WriteConfig()
 }

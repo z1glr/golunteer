@@ -7,9 +7,24 @@ import AddEvent from "../components/Event/AddEvent";
 import zustand from "../Zustand";
 import { Button } from "@nextui-org/button";
 import AssignmentTable from "@/components/Event/AssignmentTable";
+import { useAsyncList } from "@react-stately/data";
+import { apiCall } from "@/lib";
 
 export default function EventVolunteer() {
 	const [showAddItemDialogue, setShowAddItemDialogue] = useState(false);
+
+	// fetch the events from the server
+	useAsyncList({
+		load: async () => {
+			const data = await apiCall("GET", "events");
+
+			console.debug(await data.json());
+
+			return {
+				items: [],
+			};
+		},
+	});
 
 	return (
 		<div className="relative flex-1 p-4">
