@@ -8,8 +8,7 @@ import (
 )
 
 type UserLogin struct {
-	UserID   int    `json:"userID"`
-	Name     string `json:"name"`
+	UserName string `json:"userName"`
 	LoggedIn bool   `json:"loggedIn"`
 }
 
@@ -48,8 +47,7 @@ func handleWelcome(c *fiber.Ctx) error {
 					user := users[0]
 
 					response.Data = UserLogin{
-						UserID:   user.UserID,
-						Name:     user.Name,
+						UserName: user.UserName,
 						LoggedIn: true,
 					}
 				}

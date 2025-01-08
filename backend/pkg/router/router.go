@@ -164,8 +164,7 @@ func extractJWT(c *fiber.Ctx) (int, string, error) {
 
 // user-entry in the database
 type UserDB struct {
-	UserID   int    `json:"userID"`
-	Name     string `json:"name"`
+	UserName string `json:"userName"`
 	Password []byte `json:"password"`
 	Admin    bool   `json:"admin"`
 	TokenID  string `json:"tokenID"`
@@ -216,6 +215,6 @@ func checkAdmin(c *fiber.Ctx) (bool, error) {
 	if len(response) != 1 {
 		return false, fmt.Errorf("user doesn't exist")
 	} else {
-		return response[0].Name == "admin" && response[0].TokenID == tokenID, err
+		return response[0].UserName == "admin" && response[0].TokenID == tokenID, err
 	}
 }

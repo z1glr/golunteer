@@ -3,6 +3,8 @@ import "./globals.css";
 import { NextUIProvider } from "@nextui-org/system";
 import React from "react";
 import Footer from "./Footer";
+import Header from "./Header";
+import Main from "./Main";
 
 export const metadata: Metadata = {
 	title: "Create Next App",
@@ -31,11 +33,11 @@ export default function RootLayout({
 				<NextUIProvider>
 					<div className="flex min-h-screen flex-col p-4">
 						<header>
-							<h1 className="text-center font-display-headline text-8xl">
-								Volunteer Scheduler
-							</h1>
+							<Header />
 						</header>
-						<main className="flex min-h-full flex-1 flex-col">{children}</main>
+						<main className="flex min-h-full flex-1 flex-col">
+							<Main>{children}</Main>
+						</main>
 						<footer className="flex h-4 justify-center gap-4">
 							<Footer sites={footerSites} />
 						</footer>
