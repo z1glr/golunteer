@@ -1,14 +1,16 @@
 package main
 
 import (
-	"database/sql"
 	"fmt"
 	"math/rand/v2"
 	"os"
 	"regexp"
 	"strings"
 
+	"github.com/google/uuid"
+
 	"github.com/go-sql-driver/mysql"
+	"github.com/jmoiron/sqlx"
 	_config "github.com/johannesbuehl/golunteer/setup/pkg/config"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -44,7 +46,7 @@ func main() {
 		DBName:               config.Database.Database,
 	}
 
-	db, err := sql.Open("mysql", sqlConfig.FormatDSN())
+	db, err := sqlx.Open("mysql", sqlConfig.FormatDSN())
 	if err != nil {
 		exit(err)
 	}
@@ -104,7 +106,8 @@ func main() {
 		fmt.Println("\thashed password")
 
 		// create an admin-user
-		if _, err := db.Exec("INSERT INTO USERS (name, password) VALUES ('admin', ?)", passwordHash); err != nil {
+		tokenId := uuid.NewString()
+		if _, err := db.Exec("INSERT INTO USERS (name, password, tokenID) VALUES ('admin', ?, ?)", passwordHash, tokenId); err != nil {
 			exit(err)
 		}
 

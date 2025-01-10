@@ -1,18 +1,19 @@
 import { useState } from "react";
 import { Add } from "@carbon/icons-react";
 import zustand, { EventData, Task, Tasks } from "../../Zustand";
-import { Button } from "@nextui-org/button";
-import { Checkbox, CheckboxGroup } from "@nextui-org/checkbox";
-import { DatePicker } from "@nextui-org/date-picker";
 import { getLocalTimeZone, now, ZonedDateTime } from "@internationalized/date";
-import { Textarea } from "@nextui-org/input";
 import {
+	Button,
+	Checkbox,
+	CheckboxGroup,
+	DatePicker,
 	Modal,
 	ModalBody,
 	ModalContent,
 	ModalFooter,
 	ModalHeader,
-} from "@nextui-org/modal";
+	Textarea,
+} from "@nextui-org/react";
 
 interface state {
 	date: ZonedDateTime;

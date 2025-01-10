@@ -1,9 +1,8 @@
 "use client";
 
-import { Card, CardBody, CardHeader } from "@nextui-org/card";
-import { Divider } from "@nextui-org/divider";
 import LocalDate from "../LocalDate";
 import { EventData } from "@/Zustand";
+import { Card, CardBody, CardHeader, Divider } from "@nextui-org/react";
 import React from "react";
 
 export default function Event({
@@ -27,7 +26,6 @@ export default function Event({
 						options={{
 							dateStyle: "short",
 							timeStyle: "short",
-							timeZone: "Europe/Berlin", // TODO: check with actual backend
 						}}
 					>
 						{event.date}

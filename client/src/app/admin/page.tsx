@@ -4,24 +4,24 @@ import AddEvent from "@/components/Event/AddEvent";
 import LocalDate from "@/components/LocalDate";
 import zustand, { Availability, EventData, Task, Tasks } from "@/Zustand";
 import { Add, Copy, Edit, TrashCan } from "@carbon/icons-react";
-import { Button, ButtonGroup } from "@nextui-org/button";
 import {
+	Button,
+	ButtonGroup,
 	Modal,
 	ModalBody,
 	ModalContent,
 	ModalFooter,
 	ModalHeader,
-} from "@nextui-org/modal";
-import { Select, SelectItem } from "@nextui-org/select";
-import {
+	Select,
+	SelectItem,
 	Table,
 	TableBody,
 	TableCell,
 	TableColumn,
 	TableHeader,
 	TableRow,
-} from "@nextui-org/table";
-import { Tooltip } from "@nextui-org/tooltip";
+	Tooltip,
+} from "@nextui-org/react";
 import { useAsyncList } from "@react-stately/data";
 import React, { Key, useState } from "react";
 

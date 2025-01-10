@@ -4,12 +4,15 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
 	_config "github.com/johannesbuehl/golunteer/backend/pkg/config"
 	"github.com/johannesbuehl/golunteer/backend/pkg/db"
 	_logger "github.com/johannesbuehl/golunteer/backend/pkg/logger"
 )
+
+var validate *validator.Validate
 
 var logger = _logger.Logger
 var config = _config.Config
@@ -47,7 +50,14 @@ func (result responseMessage) send(c *fiber.Ctx) error {
 	}
 }
 
+type HandlerArgs struct {
+	C    *fiber.Ctx
+	User UserChecked
+}
+
 func init() {
+	validate = validator.New()
+
 	// setup fiber
 	app = fiber.New(fiber.Config{
 		AppName:               "johannes-pv",
@@ -63,8 +73,8 @@ func init() {
 	}
 
 	// map with the individual registered endpoints
-	endpoints := map[string]map[string]func(*fiber.Ctx) responseMessage{
-		"GET":    {"events": getEvents},
+	endpoints := map[string]map[string]func(HandlerArgs) responseMessage{
+		"GET":    {"events/assignments": getEventsAssignments, "events/user/pending": getEventsUserPending},
 		"POST":   {},
 		"PATCH":  {},
 		"DELETE": {},
@@ -81,7 +91,28 @@ func init() {
 			handleMethods[method]("/api/"+address, func(c *fiber.Ctx) error {
 				logger.Debug().Msgf("HTTP %s request: %q", c.Method(), c.OriginalURL())
 
-				return handler(c).send(c)
+				var response responseMessage
+
+				if user, err := checkUser(c); err != nil {
+					response = responseMessage{
+						Status: fiber.StatusBadRequest,
+					}
+
+					logger.Error().Msgf("can't check user: %v", err)
+				} else if user == nil {
+					response = responseMessage{
+						Status: fiber.StatusNoContent,
+					}
+
+					logger.Log().Msgf("user not authorized")
+				} else {
+					response = handler(HandlerArgs{
+						C:    c,
+						User: *user,
+					})
+				}
+
+				return response.send(c)
 			})
 		}
 	}
@@ -125,7 +156,7 @@ func removeSessionCookie(c *fiber.Ctx) {
 
 // payload of the JSON webtoken
 type JWTPayload struct {
-	UserID  int    `json:"userID"`
+	UserID  string `json:"userID"`
 	TokenID string `json:"tokenID"`
 }
 
@@ -138,7 +169,7 @@ type JWT struct {
 // extracts the json webtoken from the request
 //
 // @returns (userID, tokenID, error)
-func extractJWT(c *fiber.Ctx) (int, string, error) {
+func extractJWT(c *fiber.Ctx) (string, string, error) {
 	// get the session-cookie
 	cookie := c.Cookies("session")
 
@@ -151,70 +182,57 @@ func extractJWT(c *fiber.Ctx) (int, string, error) {
 	})
 
 	if err != nil {
-		return -1, "", err
+		return "", "", err
 	}
 
 	// extract the claims from the JWT
 	if claims, ok := token.Claims.(*JWT); ok && token.Valid {
 		return claims.CustomClaims.UserID, claims.CustomClaims.TokenID, nil
 	} else {
-		return -1, "", fmt.Errorf("invalid JWT")
+		return "", "", fmt.Errorf("invalid JWT")
 	}
 }
 
 // user-entry in the database
-type UserDB struct {
-	UserName string `json:"userName"`
-	Password []byte `json:"password"`
-	Admin    bool   `json:"admin"`
-	TokenID  string `json:"tokenID"`
+type userDB struct {
+	UserName string `db:"userName"`
+	Password []byte `db:"password"`
+	Admin    bool   `db:"admin"`
+	TokenID  string `db:"tokenID"`
+}
+
+type UserChecked struct {
+	UserName string `json:"userName" db:"userName"`
+	Admin    bool   `json:"admin" db:"admin"`
 }
 
 // checks wether the request is from a valid user
-func checkUser(c *fiber.Ctx) (bool, error) {
-	uid, tid, err := extractJWT(c)
+func checkUser(c *fiber.Ctx) (*UserChecked, error) {
+	userName, tokenID, err := extractJWT(c)
 
 	if err != nil {
-		return false, nil
+		return nil, nil
+	}
+
+	var dbResult struct {
+		TokenID string `db:"tokenID"`
+		Admin   bool   `db:"admin"`
 	}
 
 	// retrieve the user from the database
-	response, err := db.SelectOld[UserDB]("users", "uid = ? LIMIT 1", uid)
+	if err := db.DB.QueryRowx("SELECT tokenID, admin FROM USERS WHERE name = ?", userName).StructScan(&dbResult); err != nil {
+		return nil, err
 
-	if err != nil {
-		return false, err
-	}
-
-	// if exactly one user came back and the tID is valid, the user is authorized
-	if len(response) == 1 && response[0].TokenID == tid {
+		// if the tokenID is valid, the user is authorized
+	} else if dbResult.TokenID != tokenID {
+		return nil, err
+	} else {
 		// reset the expiration of the cookie
 		setSessionCookie(c, nil)
 
-		return true, err
-	} else {
-		return false, err
-	}
-}
-
-// checks wether the request is from the admin
-func checkAdmin(c *fiber.Ctx) (bool, error) {
-	uid, tokenID, err := extractJWT(c)
-
-	if err != nil {
-		return false, err
-	}
-
-	// retrieve the user from the database
-	response, err := db.SelectOld[UserDB]("users", "uid = ? LIMIT 1", uid)
-
-	if err != nil {
-		return false, err
-	}
-
-	// if exactly one user came back and its name is "admin", the user is the admin
-	if len(response) != 1 {
-		return false, fmt.Errorf("user doesn't exist")
-	} else {
-		return response[0].UserName == "admin" && response[0].TokenID == tokenID, err
+		return &UserChecked{
+			UserName: userName,
+			Admin:    dbResult.Admin,
+		}, err
 	}
 }

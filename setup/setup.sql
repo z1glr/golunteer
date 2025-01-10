@@ -14,7 +14,9 @@ CREATE TABLE USERS (
 	name varchar(64) PRIMARY KEY,
 	password binary(60) NOT NULL,
 	admin BOOL NOT NULL DEFAULT(false),
-	tokenID varchar(64) DEFAULT NULL 
+	tokenID varchar(64) NOT NULL,
+	CHECK (CHAR_LENGTH(password) = 60),
+	CHECK (CHAR_LENGTH(tokenID) = 36)
 );
 
 CREATE TABLE EVENTS (

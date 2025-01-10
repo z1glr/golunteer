@@ -5,28 +5,29 @@ import (
 	"github.com/johannesbuehl/golunteer/backend/pkg/db/events"
 )
 
-func getEvents(c *fiber.Ctx) responseMessage {
+func getEventsAssignments(args HandlerArgs) responseMessage {
 	response := responseMessage{}
 
-	// get all eventRows
-	if eventRows, err := events.All(); err != nil {
+	if events, err := events.WithAssignments(); err != nil {
 		response.Status = fiber.StatusInternalServerError
 
-		logger.Error().Msgf("events retrieving failed: %v", err)
+		logger.Error().Msgf("can't retrieve events with assignments: %v", err)
 	} else {
-		// get the data for all the allEvents
-		allEvents := []events.Event{}
+		response.Data = events
+	}
 
-		for _, eventRow := range eventRows {
-			if e, err := eventRow.Event(); err != nil {
-				logger.Error().Msgf("error while populating event with id = %d: %v", eventRow.Id, err)
-			} else {
-				allEvents = append(allEvents, e)
-			}
+	return response
+}
 
-			// response.Data = struct{ Events []events.Event }{Events: allEvents}
-			response.Data = allEvents
-		}
+func getEventsUserPending(args HandlerArgs) responseMessage {
+	response := responseMessage{}
+
+	if count, err := events.UserPending(args.User.UserName); err != nil {
+		response.Status = fiber.StatusInternalServerError
+
+		logger.Warn().Msgf("can't query database for users %q pending events: %v", args.User.UserName, err)
+	} else {
+		response.Data = count
 	}
 
 	return response

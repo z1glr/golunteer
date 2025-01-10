@@ -1,49 +1,68 @@
 "use client";
 
 import { apiCall } from "@/lib";
-import { Spinner } from "@nextui-org/spinner";
+import zustand from "@/Zustand";
+import { Spinner } from "@nextui-org/react";
 import { usePathname, useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 
 enum AuthState {
-	Loading,
+	LoggedIn,
 	LoginScreen,
 	Unauthorized,
-	LoggedIn,
+	Loading,
 }
 
 export default function Main({ children }: { children: React.ReactNode }) {
-	const [status, setStatus] = useState(AuthState.Loading);
+	const [auth, setAuth] = useState(AuthState.Loading);
 
 	const router = useRouter();
 	const pathname = usePathname();
 
 	useEffect(() => {
 		void (async () => {
-			if (pathname === "/login") {
-				setStatus(AuthState.LoginScreen);
-			} else {
+			let loggedIn = false;
+
+			if (zustand.getState().user === null) {
 				const welcomeResult = await apiCall<{
 					userName: string;
 					loggedIn: boolean;
 				}>("GET", "welcome");
 
-				if (!welcomeResult.ok) {
-					router.push("/login");
-				} else {
-					const response = await welcomeResult.json();
+				if (welcomeResult.ok) {
+					try {
+						const response = await welcomeResult.json();
 
-					if (response.loggedIn) {
-						setStatus(AuthState.LoggedIn);
-					} else {
-						setStatus(AuthState.Unauthorized);
-					}
+						if (response.userName !== undefined && response.userName !== "") {
+							zustand.getState().reset({ user: response });
+
+							loggedIn = true;
+						}
+					} catch {}
+				} else {
+				}
+			} else {
+				loggedIn = true;
+			}
+
+			if (pathname === "/login") {
+				if (loggedIn) {
+					router.push("/");
+				} else {
+					setAuth(AuthState.LoginScreen);
+				}
+			} else {
+				if (loggedIn) {
+					setAuth(AuthState.LoggedIn);
+				} else {
+					setAuth(AuthState.Unauthorized);
+					router.push("/login");
 				}
 			}
 		})();
-	});
+	}, [pathname, router]);
 
-	switch (status) {
+	switch (auth) {
 		case AuthState.Loading:
 			return <Spinner label="Loading..." />;
 		case AuthState.LoggedIn:

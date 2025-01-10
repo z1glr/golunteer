@@ -1,14 +1,14 @@
 import type { Config } from "tailwindcss";
 import { nextui } from "@nextui-org/theme";
 
-const HIGHLIGHT = "#ff5053";
-const FOREGROUND = "#fef2ff";
-const ACCENT1 = "#b2aaff";
-const ACCENT2 = "#6a5fdb";
-const ACCENT3 = "#261a66";
-const ACCENT4 = "#29114c";
-const ACCENT5 = "#190b2f";
-const BACKGROUND = "#0f000a";
+const HIGHLIGHT = "hsl(359,100%,65.7%)"; // #ff5053
+const FOREGROUND = "hsl(295,100%,97.5%)"; // #fef2ff
+const ACCENT1 = "hsl(246,100%,83.3%)"; // #b2aaff
+const ACCENT2 = "hsl(245,63.3%,61.6%)"; // #6a5fdb
+const ACCENT3 = "hsl(249,59.4%,25.1%)"; // #261a66
+const ACCENT4 = "hsl(264,63.4%,18.2%)"; // #29114c
+const ACCENT5 = "hsl(263,62.1%,11.4%)"; // #190b2f
+const BACKGROUND = "hsl(320,100%,2.9%)"; // #0f000a
 
 export default {
 	content: [
@@ -21,20 +21,7 @@ export default {
 		extend: {
 			colors: {
 				highlight: HIGHLIGHT,
-				foreground: {
-					DEFAULT: FOREGROUND,
-					"50": FOREGROUND,
-					"100": FOREGROUND,
-					"200": FOREGROUND,
-					"300": FOREGROUND,
-					"400": FOREGROUND,
-					"500": FOREGROUND,
-					"600": "#fce8ff",
-					"700": "#fad0fe",
-					"800": "#f8abfc",
-					"900": "#f579f9",
-					"950": "#eb46ef",
-				},
+				foreground: FOREGROUND,
 				"accent-1": ACCENT1,
 				"accent-2": ACCENT2,
 				"accent-3": ACCENT3,
@@ -67,45 +54,45 @@ export default {
 						// },
 						primary: {
 							DEFAULT: ACCENT2,
-							"50": "#39357a",
-							"100": "#42399a",
-							"200": "#5144be",
-							"300": ACCENT2,
-							"400": "#6f6ee6",
-							"500": "#8b91ee",
-							"600": "#acb7f5",
-							"700": "#cbd3fa",
-							"800": "#e2e7fd",
-							"900": "#eff3fe",
+							"50": "hsl(244,100%,9.6%)",
+							"100": "hsl(244,100%,19.2%)",
+							"200": "hsl(244,100%,28.8%)",
+							"300": "hsl(244,100%,38.4%)",
+							"400": "hsl(244,100%,46.7%)",
+							"500": "hsl(244,92.5%,58.4%)",
+							"600": "hsl(244,92.5%,68.8%)",
+							"700": "hsl(244,92.5%,79.2%)",
+							"800": "hsl(244,92.5%,89.6%)",
+							"900": "hsl(245,92.3%,94.9%)",
 						},
 						secondary: {
 							DEFAULT: ACCENT3,
-							"50": "#3b288a",
-							"100": "#462fa8",
-							"200": "#5538c9",
-							"300": "#634add",
-							"400": "#776ae8",
-							"500": "#9a95f0",
-							"600": "#bdbcf6",
-							"700": "#dadbfa",
-							"800": "#ebebfc",
-							"900": "#f4f4fe",
+							"50": "hsl(249,66.7%,9.4%)",
+							"100": "hsl(249,66.7%,18.8%)",
+							"200": "hsl(249,66.7%,28.2%)",
+							"300": "hsl(249,66.7%,37.6%)",
+							"400": "hsl(249,66.7%,47.1%)",
+							"500": "hsl(249,59.3%,57.6%)",
+							"600": "hsl(249,59.3%,68.2%)",
+							"700": "hsl(249,59.3%,78.8%)",
+							"800": "hsl(249,59.3%,89.4%)",
+							"900": "hsl(249,61.5%,94.9%)",
 						},
 						// background: {
 						// 	DEFAULT: BACKGROUND,
 						// },
 						danger: {
 							DEFAULT: HIGHLIGHT,
-							"50": "#fff1f1",
-							"100": "#ffe1e2",
-							"200": "#ffc7c8",
-							"300": "#ffa0a2",
-							"400": HIGHLIGHT,
-							"500": "#f83b3e",
-							"600": "#e51d20",
-							"700": "#c11417",
-							"800": "#a01416",
-							"900": "#84181a",
+							"50": "hsl(360,84.9%,10.4%)",
+							"100": "hsl(359,86.5%,20.4%)",
+							"200": "hsl(359,86%,30.8%)",
+							"300": "hsl(359,86.5%,40.8%)",
+							"400": "hsl(359,90.4%,51.2%)",
+							"500": "hsl(359,90%,60.8%)",
+							"600": "hsl(359,90.6%,70.8%)",
+							"700": "hsl(359,90%,80.4%)",
+							"800": "hsl(360,91.8%,90.4%)",
+							"900": "hsl(359,92%,95.1%)",
 						},
 					},
 				},

@@ -5,10 +5,10 @@ import Event from "../components/Event/Event";
 import { useState } from "react";
 import AddEvent from "../components/Event/AddEvent";
 import zustand from "../Zustand";
-import { Button } from "@nextui-org/button";
 import AssignmentTable from "@/components/Event/AssignmentTable";
 import { useAsyncList } from "@react-stately/data";
 import { apiCall } from "@/lib";
+import { Button } from "@nextui-org/react";
 
 export default function EventVolunteer() {
 	const [showAddItemDialogue, setShowAddItemDialogue] = useState(false);
@@ -18,8 +18,6 @@ export default function EventVolunteer() {
 		load: async () => {
 			const data = await apiCall("GET", "events");
 
-			console.debug(await data.json());
-
 			return {
 				items: [],
 			};
@@ -27,7 +25,7 @@ export default function EventVolunteer() {
 	});
 
 	return (
-		<div className="relative flex-1 p-4">
+		<div className="relative flex-1">
 			<h2 className="mb-4 text-center text-4xl">Overview</h2>
 			<div className="flex flex-wrap justify-center gap-4">
 				{zustand.getState().events.map((ee) => (

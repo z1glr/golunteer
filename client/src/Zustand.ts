@@ -1,5 +1,8 @@
+"use client";
+
 import { DateFormatter as IntlDateFormatter } from "@internationalized/date";
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
 export type Task = string;
 
@@ -19,43 +22,48 @@ export interface EventData {
 	id: number;
 	date: string;
 	tasks: Partial<Record<Task, string | undefined>>;
-	volunteers: Partial<Record<string, Availability>>;
 	description: string;
 }
 
 interface Zustand {
 	events: EventData[];
-	addEvent: (event: EventData) => void;
+	pendingEvents: number;
+	user: {
+		userName: string;
+		admin: boolean;
+	} | null;
+	setEvents: (events: EventData[]) => void;
+	reset: (zustand?: Partial<Zustand>) => void;
+	setPendingEvents: (c: number) => void;
 }
 
-const zustand = create<Zustand>()((set) => ({
-	events: [
+const initialState = {
+	events: [],
+	user: null,
+	pendingEvents: 0,
+};
+
+const zustand = create<Zustand>()(
+	persist(
+		(set) => ({
+			...initialState,
+			setEvents: (events) => set({ events }),
+			reset: (newZustand) =>
+				set({
+					...initialState,
+					...newZustand,
+				}),
+			setPendingEvents: (c) => set(() => ({ pendingEvents: c })),
+		}),
 		{
-			id: 0,
-			// date: parseDateTime("2025-01-05T11:00[Europe/Berlin]").toString(),
-			date: "2025-01-05T11:00[Europe/Berlin]",
-			tasks: {
-				Audio: "Mark",
-				Livestream: undefined,
-				"Stream Audio": undefined,
-			},
-			volunteers: { Mark: "yes", Simon: "maybe", Sophie: "no" },
-			description: "neuer Prädikant",
+			name: "golunteer-storage",
+			partialize: (state) =>
+				Object.fromEntries(
+					Object.entries(state).filter(([key]) => !["events"].includes(key)),
+				),
 		},
-		{
-			id: 1,
-			date: "2025-01-12T11:00[Europe/Berlin]",
-			tasks: {
-				Audio: "Mark",
-				Livestream: undefined,
-			},
-			volunteers: { Mark: "yes", Simon: "maybe" },
-			description: "",
-		},
-	],
-	addEvent: (event: EventData) =>
-		set((state) => ({ events: state.events.toSpliced(-1, 0, event) })),
-}));
+	),
+);
 
 export class DateFormatter {
 	private formatter;

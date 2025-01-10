@@ -1,15 +1,11 @@
 "use client";
 
-import { Divider } from "@nextui-org/divider";
-import { Link } from "@nextui-org/link";
 import { usePathname } from "next/navigation";
 import React from "react";
+import { SiteLink } from "./layout";
+import { Divider, Link } from "@nextui-org/react";
 
-export default function Footer({
-	sites,
-}: {
-	sites: { href: string; text: string }[];
-}) {
+export default function Footer({ sites }: { sites: SiteLink[] }) {
 	const pathname = usePathname();
 
 	return (
