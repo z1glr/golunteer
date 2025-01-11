@@ -24,11 +24,6 @@ func hashPassword(password string) ([]byte, error) {
 	return bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 }
 
-// validates a password against the password-rules
-func ValidatePassword(password string) bool {
-	return len(password) >= 12 && len(password) <= 64
-}
-
 func Get() (map[string]User, error) {
 	if users, hit := c.Get("users"); !hit {
 		refresh()
@@ -41,7 +36,7 @@ func Get() (map[string]User, error) {
 
 type UserAdd struct {
 	UserName string `json:"userName" validate:"required" db:"userName"`
-	Password string `json:"password" validate:"required,min=8"`
+	Password string `json:"password" validate:"required,min=12"`
 	Admin    bool   `json:"admin" db:"admin"`
 }
 
@@ -61,6 +56,36 @@ func Add(user UserAdd) error {
 		}
 
 		if _, err := db.DB.NamedExec("INSERT INTO USERS (name, password, admin, tokenID) VALUES (:userName, :password, :admin, :tokenID)", insertUser); err != nil {
+			return err
+		} else {
+			refresh()
+
+			return nil
+		}
+	}
+}
+
+type UserChangePassword struct {
+	UserName string `json:"userName" validate:"required" db:"userName"`
+	Password string `json:"password" validate:"required,min=12"`
+}
+
+func ChangePassword(user UserChangePassword) error {
+	// try to hash teh password
+	if hash, err := hashPassword(user.Password); err != nil {
+		return err
+	} else {
+		execStruct := struct {
+			UserName string `db:"userName"`
+			Password []byte `db:"password"`
+			TokenID  string `db:"tokenID"`
+		}{
+			UserName: user.UserName,
+			Password: hash,
+			TokenID:  uuid.NewString(),
+		}
+
+		if _, err := db.DB.NamedExec("UPDATE USERS SET tokenID = :tokenID, password = :password WHERE name = :userName", execStruct); err != nil {
 			return err
 		} else {
 			refresh()

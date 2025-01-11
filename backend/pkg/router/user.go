@@ -34,3 +34,29 @@ func postUser(args HandlerArgs) responseMessage {
 
 	return response
 }
+
+func patchPassword(args HandlerArgs) responseMessage {
+	response := responseMessage{}
+	// parse the body
+	var body users.UserChangePassword
+
+	if err := args.C.BodyParser(&body); err != nil {
+		response.Status = fiber.StatusBadRequest
+
+		logger.Log().Msgf("can't parse body: %v", err)
+	} else {
+		body.UserName = args.User.UserName
+
+		if err := validate.Struct(body); err != nil {
+			response.Status = fiber.StatusBadRequest
+
+			logger.Info().Msgf("invalid body: %v", err)
+		} else if err := users.ChangePassword(body); err != nil {
+			response.Status = fiber.StatusInternalServerError
+
+			logger.Error().Msgf("can't update password: %v", err)
+		}
+	}
+
+	return response
+}

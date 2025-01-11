@@ -80,3 +80,13 @@ export class DateFormatter {
 		return this.formatter.format(dt);
 	}
 }
+
+export function vaidatePassword(password: string): string[] {
+	const errors = [];
+
+	if (password.length < 1) {
+		errors.push("Password must be 16 characters or more");
+	}
+
+	return errors;
+}

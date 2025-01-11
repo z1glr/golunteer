@@ -84,7 +84,9 @@ func init() {
 			"events": postEvent,
 			"users":  postUser,
 		},
-		"PATCH": {},
+		"PATCH": {
+			"users/password": patchPassword,
+		},
 		"DELETE": {
 			"event": deleteEvent,
 		},
