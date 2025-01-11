@@ -4,16 +4,10 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { apiCall } from "./lib";
 
-export type Task = string;
-
-export type Availability = string;
-
-export const Availabilities: Availability[] = ["yes", "maybe", "no"];
-
 export interface EventData {
 	id: number;
 	date: string;
-	tasks: Partial<Record<Task, string | null>>;
+	tasks: Partial<Record<string, string | null>>;
 	description: string;
 }
 
@@ -69,22 +63,5 @@ const zustand = create<Zustand>()(
 		},
 	),
 );
-
-export async function getTasks(): Promise<
-	Record<number, { text: string; disabled: boolean }>
-> {
-	const result = await apiCall<{ text: string; disabled: boolean }[]>(
-		"GET",
-		"tasks",
-	);
-
-	if (result.ok) {
-		const tasks = await result.json();
-
-		return tasks;
-	} else {
-		return [];
-	}
-}
 
 export default zustand;

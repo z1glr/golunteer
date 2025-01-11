@@ -51,10 +51,24 @@ func patchPassword(args HandlerArgs) responseMessage {
 			response.Status = fiber.StatusBadRequest
 
 			logger.Info().Msgf("invalid body: %v", err)
-		} else if err := users.ChangePassword(body); err != nil {
+		} else if tokenID, err := users.ChangePassword(body); err != nil {
 			response.Status = fiber.StatusInternalServerError
 
 			logger.Error().Msgf("can't update password: %v", err)
+
+			// sign a new JWT with the new tokenID
+		} else if jwt, err := config.SignJWT(JWTPayload{
+			UserName: body.UserName,
+			TokenID:  tokenID,
+
+			// if something failed, remove the current session-cookie
+		}); err != nil {
+			removeSessionCookie(args.C)
+
+			// set the new session-cookie
+		} else {
+			// update the token in the session-cookie
+			setSessionCookie(args.C, &jwt)
 		}
 	}
 

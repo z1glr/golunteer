@@ -90,3 +90,23 @@ export function vaidatePassword(password: string): string[] {
 
 	return errors;
 }
+
+export interface Task {
+	text: string;
+	disabled: boolean;
+}
+
+export async function getTasks(): Promise<Record<number, Task>> {
+	const result = await apiCall<{ text: string; disabled: boolean }[]>(
+		"GET",
+		"tasks",
+	);
+
+	if (result.ok) {
+		const tasks = await result.json();
+
+		return tasks;
+	} else {
+		return [];
+	}
+}

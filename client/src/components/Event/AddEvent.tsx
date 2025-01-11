@@ -1,6 +1,6 @@
-import { useEffect, useReducer } from "react";
+import { useEffect, useReducer, useState } from "react";
 import { Add } from "@carbon/icons-react";
-import zustand, { getTasks, Task } from "../../Zustand";
+import zustand from "../../Zustand";
 import { getLocalTimeZone, now, ZonedDateTime } from "@internationalized/date";
 import {
 	Button,
@@ -16,12 +16,12 @@ import {
 	Spinner,
 	Textarea,
 } from "@nextui-org/react";
-import { apiCall } from "@/lib";
+import { apiCall, getTasks, Task } from "@/lib";
 
 interface state {
 	date: ZonedDateTime;
 	description: string;
-	tasks: Task[];
+	tasks: string[];
 }
 
 interface dispatchAction {
@@ -50,11 +50,13 @@ export default function AddEvent(props: {
 		}
 	}
 	const [state, dispatchState] = useReducer(reducer, initialState);
-	const tasks = zustand((state) => state.tasks);
+	const [tasks, setTasks] = useState<Record<number, Task>>({});
 
 	// get the available tasks
 	useEffect(() => {
-		void getTasks();
+		(async () => {
+			setTasks(await getTasks());
+		})();
 	}, []);
 
 	// sends the addEvent request to the backend

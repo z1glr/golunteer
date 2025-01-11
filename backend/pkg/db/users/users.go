@@ -70,10 +70,10 @@ type UserChangePassword struct {
 	Password string `json:"password" validate:"required,min=12"`
 }
 
-func ChangePassword(user UserChangePassword) error {
+func ChangePassword(user UserChangePassword) (string, error) {
 	// try to hash teh password
 	if hash, err := hashPassword(user.Password); err != nil {
-		return err
+		return "", err
 	} else {
 		execStruct := struct {
 			UserName string `db:"userName"`
@@ -86,11 +86,11 @@ func ChangePassword(user UserChangePassword) error {
 		}
 
 		if _, err := db.DB.NamedExec("UPDATE USERS SET tokenID = :tokenID, password = :password WHERE name = :userName", execStruct); err != nil {
-			return err
+			return "", err
 		} else {
 			refresh()
 
-			return nil
+			return execStruct.TokenID, nil
 		}
 	}
 }
