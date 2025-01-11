@@ -103,7 +103,7 @@ func UserPending(userName string) (int, error) {
 		Count int `db:"count(*)"`
 	}
 
-	if err := db.DB.QueryRowx("SELECT count(*) FROM USERS WHERE name = ? AND name NOT IN (SELECT userName FROM USER_AVAILABILITIES)", userName).StructScan(&result); err != nil {
+	if err := db.DB.QueryRowx("SELECT count(*) FROM EVENTS WHERE NOT EXISTS (SELECT 1 FROM USER_AVAILABILITIES WHERE USER_AVAILABILITIES.eventID = EVENTS.id AND USER_AVAILABILITIES.userName = ?)", userName).StructScan(&result); err != nil {
 		return 0, err
 	} else {
 		return result.Count, nil
