@@ -2,19 +2,29 @@
 
 import AddEvent from "@/components/Event/AddEvent";
 import LocalDate from "@/components/LocalDate";
-import { apiCall } from "@/lib";
-import { Availability, EventData, getTasks, Task } from "@/Zustand";
-import { Add, Copy, Edit, TrashCan } from "@carbon/icons-react";
+import { apiCall, getTasks } from "@/lib";
+import { EventData } from "@/Zustand";
+import {
+	Add,
+	AddLarge,
+	Copy,
+	Edit,
+	NotAvailable,
+	TrashCan,
+} from "@carbon/icons-react";
 import {
 	Button,
 	ButtonGroup,
+	Chip,
+	Dropdown,
+	DropdownItem,
+	DropdownMenu,
+	DropdownTrigger,
 	Modal,
 	ModalBody,
 	ModalContent,
 	ModalFooter,
 	ModalHeader,
-	Select,
-	SelectItem,
 	Table,
 	TableBody,
 	TableCell,
@@ -131,7 +141,7 @@ export default function AdminPanel() {
 					</LocalDate>
 				);
 			case "description":
-				return <span className="italic">{event[key]}</span>;
+				return <span className="whitespace-pre-wrap italic">{event[key]}</span>;
 			case "actions":
 				return (
 					<div className="flex justify-end">
@@ -164,33 +174,65 @@ export default function AdminPanel() {
 				// only show the selector, if the task is needed for the event
 				if (Object.keys(event.tasks).includes(key as string)) {
 					return (
-						<Select
-							variant="underlined"
-							fullWidth
-							selectedKeys={new Set([event.tasks[key as Task] ?? ""])}
-							classNames={{
-								popoverContent: "w-fit",
-								value: "mr-6",
-								label: "mr-6",
-							}}
-							className="[&_*]:overflow-visible"
-						>
-							{Object.entries(event.availabilities).map(
-								([volunteer, availability]) => (
-									<SelectItem
-										key={volunteer}
-										// color={availability2Color(availability)}
-										className={[
-											// "text-" + availability2Color(availability),
-											// availability2Tailwind(availability),
-										].join(" ")}
-									>
-										{volunteer} ({availability})
-									</SelectItem>
-								),
-							)}
-						</Select>
+						<Dropdown>
+							<DropdownTrigger>
+								{!!event.tasks[key as string] ? (
+									<Chip onClose={() => alert("implement")}>
+										{event.tasks[key as string]}
+									</Chip>
+								) : (
+									<Button isIconOnly size="sm" radius="md" variant="flat">
+										<AddLarge className="mx-auto" />
+									</Button>
+								)}
+							</DropdownTrigger>
+							<DropdownMenu>
+								{Object.entries(event.availabilities).map(
+									([volunteer, availability]) => (
+										<DropdownItem
+											key={volunteer}
+											// color={availability2Color(availability)}
+											className={[
+												// "text-" + availability2Color(availability),
+												// availability2Tailwind(availability),
+											].join(" ")}
+										>
+											{volunteer} ({availability})
+										</DropdownItem>
+									),
+								)}
+							</DropdownMenu>
+						</Dropdown>
+						// <Select
+						// 	aria-label={`User selection for task ${key} and event ${event.date}`}
+						// 	variant="underlined"
+						// 	fullWidth
+						// 	selectedKeys={new Set([event.tasks[key as string] ?? ""])}
+						// 	classNames={{
+						// 		popoverContent: "w-fit",
+						// 		value: "mr-6",
+						// 		label: "mr-6",
+						// 	}}
+						// 	className="[&_*]:overflow-visible"
+						// >
+						// 	{Object.entries(event.availabilities).map(
+						// 		([volunteer, availability]) => (
+						// 			<SelectItem
+						// 				key={volunteer}
+						// 				// color={availability2Color(availability)}
+						// 				className={[
+						// 					// "text-" + availability2Color(availability),
+						// 					// availability2Tailwind(availability),
+						// 				].join(" ")}
+						// 			>
+						// 				{volunteer} ({availability})
+						// 			</SelectItem>
+						// 		),
+						// 	)}
+						// </Select>
 					);
+				} else {
+					return <NotAvailable className="mx-auto text-foreground-300" />;
 				}
 		}
 	}
@@ -253,7 +295,11 @@ export default function AdminPanel() {
 				</TableBody>
 			</Table>
 
-			<AddEvent isOpen={showAddEvent} onOpenChange={setShowAddEvent} />
+			<AddEvent
+				isOpen={showAddEvent}
+				onOpenChange={setShowAddEvent}
+				onSuccess={() => events.reload()}
+			/>
 
 			{activeEvent !== undefined ? (
 				<Modal
