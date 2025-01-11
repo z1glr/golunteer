@@ -1,4 +1,4 @@
-package availabilites
+package availabilities
 
 import (
 	"fmt"
@@ -8,7 +8,7 @@ import (
 	"github.com/johannesbuehl/golunteer/backend/pkg/db"
 )
 
-type availabilitesDB struct {
+type availabilitiesDB struct {
 	Id       int    `db:"id"`
 	Text     string `db:"text"`
 	Disabled bool   `db:"disabled"`
@@ -22,31 +22,31 @@ type Availability struct {
 var c *cache.Cache
 
 func Keys() (map[int]Availability, error) {
-	if availabilities, hit := c.Get("availabilites"); !hit {
+	if availabilities, hit := c.Get("availabilities"); !hit {
 		refresh()
 
-		return nil, fmt.Errorf("availabilites not stored cached")
+		return nil, fmt.Errorf("availabilities not stored cached")
 	} else {
 		return availabilities.(map[int]Availability), nil
 	}
 }
 
 func refresh() {
-	// get the availabilitesRaw from the database
-	var availabilitesRaw []availabilitesDB
+	// get the availabilitiesRaw from the database
+	var availabilitiesRaw []availabilitiesDB
 
-	if err := db.DB.Select(&availabilitesRaw, "SELECT * FROM AVAILABILITIES"); err == nil {
+	if err := db.DB.Select(&availabilitiesRaw, "SELECT * FROM AVAILABILITIES"); err == nil {
 		// convert the result in a map
-		availabilites := map[int]Availability{}
+		availabilities := map[int]Availability{}
 
-		for _, a := range availabilitesRaw {
-			availabilites[a.Id] = Availability{
+		for _, a := range availabilitiesRaw {
+			availabilities[a.Id] = Availability{
 				Text:     a.Text,
 				Disabled: a.Disabled,
 			}
 		}
 
-		c.Set("availabilites", availabilites)
+		c.Set("availabilities", availabilities)
 	}
 }
 

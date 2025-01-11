@@ -36,18 +36,8 @@ export default function RootLayout({
 			href: "/assignments",
 		},
 		{
-			text: "Assign Tasks",
-			href: "/admin/assign",
-			admin: true,
-		},
-		{
-			text: "Users",
-			href: "/admin/users",
-			admin: true,
-		},
-		{
-			text: "Configuration",
-			href: "/admin/config",
+			text: "Admin",
+			href: "/admin",
 			admin: true,
 		},
 	];

@@ -3,6 +3,7 @@
 import { DateFormatter as IntlDateFormatter } from "@internationalized/date";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { apiCall } from "./lib";
 
 export type Task = string;
 
@@ -24,7 +25,6 @@ interface Zustand {
 		userName: string;
 		admin: boolean;
 	} | null;
-	tasks?: Record<number, { text: string; disabled: boolean }>;
 	setEvents: (events: EventData[]) => void;
 	reset: (zustand?: Partial<Zustand>) => void;
 	setPendingEvents: (c: number) => void;
@@ -57,6 +57,23 @@ const zustand = create<Zustand>()(
 		},
 	),
 );
+
+export async function getTasks(): Promise<
+	Record<number, { text: string; disabled: boolean }>
+> {
+	const result = await apiCall<{ text: string; disabled: boolean }[]>(
+		"GET",
+		"tasks",
+	);
+
+	if (result.ok) {
+		const tasks = await result.json();
+
+		return tasks;
+	} else {
+		return [];
+	}
+}
 
 export class DateFormatter {
 	private formatter;

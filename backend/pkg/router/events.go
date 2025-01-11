@@ -56,6 +56,25 @@ func getEventsAssignments(args HandlerArgs) responseMessage {
 	return response
 }
 
+func getEventsAvailabilities(args HandlerArgs) responseMessage {
+	response := responseMessage{}
+
+	// check for admin
+	if !args.User.Admin {
+		response.Status = fiber.StatusForbidden
+	} else {
+		if events, err := events.WithAvailabilities(); err != nil {
+			response.Status = fiber.StatusInternalServerError
+
+			logger.Error().Msgf("can't retrieve events with availabilities: %v", err)
+		} else {
+			response.Data = events
+		}
+	}
+
+	return response
+}
+
 func getEventsUserPending(args HandlerArgs) responseMessage {
 	response := responseMessage{}
 

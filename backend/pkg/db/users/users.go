@@ -9,10 +9,10 @@ import (
 )
 
 type User struct {
-	Name     string `db:"text"`
+	Name     string `db:"name"`
 	Password []byte `db:"password"`
 	TokenID  string `db:"tokenID"`
-	Admin    bool   `db:"disabled"`
+	Admin    bool   `db:"admin"`
 }
 
 var c *cache.Cache
@@ -21,7 +21,7 @@ func Get() (map[string]User, error) {
 	if users, hit := c.Get("users"); !hit {
 		refresh()
 
-		return nil, fmt.Errorf("users not stored cached")
+		return nil, fmt.Errorf("users not cached")
 	} else {
 		return users.(map[string]User), nil
 	}

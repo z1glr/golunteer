@@ -75,9 +75,10 @@ func init() {
 	// map with the individual registered endpoints
 	endpoints := map[string]map[string]func(HandlerArgs) responseMessage{
 		"GET": {
-			"events/assignments":  getEventsAssignments,
-			"events/user/pending": getEventsUserPending,
-			"tasks":               getTasks,
+			"events/assignments":    getEventsAssignments,
+			"events/availabilities": getEventsAvailabilities,
+			"events/user/pending":   getEventsUserPending,
+			"tasks":                 getTasks,
 		},
 		"POST":   {"events": postEvent},
 		"PATCH":  {},
@@ -160,8 +161,8 @@ func removeSessionCookie(c *fiber.Ctx) {
 
 // payload of the JSON webtoken
 type JWTPayload struct {
-	UserID  string `json:"userID"`
-	TokenID string `json:"tokenID"`
+	UserName string `json:"userName"`
+	TokenID  string `json:"tokenID"`
 }
 
 // complete JSON webtoken
@@ -172,7 +173,7 @@ type JWT struct {
 
 // extracts the json webtoken from the request
 //
-// @returns (userID, tokenID, error)
+// @returns (userName, tokenID, error)
 func extractJWT(c *fiber.Ctx) (string, string, error) {
 	// get the session-cookie
 	cookie := c.Cookies("session")
@@ -191,7 +192,7 @@ func extractJWT(c *fiber.Ctx) (string, string, error) {
 
 	// extract the claims from the JWT
 	if claims, ok := token.Claims.(*JWT); ok && token.Valid {
-		return claims.CustomClaims.UserID, claims.CustomClaims.TokenID, nil
+		return claims.CustomClaims.UserName, claims.CustomClaims.TokenID, nil
 	} else {
 		return "", "", fmt.Errorf("invalid JWT")
 	}

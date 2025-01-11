@@ -6,23 +6,10 @@ import { useState } from "react";
 import AddEvent from "../components/Event/AddEvent";
 import zustand from "../Zustand";
 import AssignmentTable from "@/components/Event/AssignmentTable";
-import { useAsyncList } from "@react-stately/data";
-import { apiCall } from "@/lib";
 import { Button } from "@nextui-org/react";
 
 export default function EventVolunteer() {
 	const [showAddItemDialogue, setShowAddItemDialogue] = useState(false);
-
-	// fetch the events from the server
-	useAsyncList({
-		load: async () => {
-			const data = await apiCall("GET", "events");
-
-			return {
-				items: [],
-			};
-		},
-	});
 
 	return (
 		<div className="relative flex-1">

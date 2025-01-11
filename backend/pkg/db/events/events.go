@@ -3,12 +3,18 @@ package events
 import (
 	"github.com/johannesbuehl/golunteer/backend/pkg/db"
 	"github.com/johannesbuehl/golunteer/backend/pkg/db/assignments"
+	"github.com/johannesbuehl/golunteer/backend/pkg/db/availabilities"
 	"github.com/johannesbuehl/golunteer/backend/pkg/logger"
 )
 
 type EventWithAssignment struct {
 	eventDataDB
 	Tasks map[string]*string `json:"tasks"`
+}
+
+type EventWithAvailabilities struct {
+	EventWithAssignment
+	Availabilities map[string]string `json:"availabilities"`
 }
 
 type eventDataDB struct {
@@ -18,14 +24,30 @@ type eventDataDB struct {
 }
 
 // transform the database-entry to an Event
-func (e *eventDataDB) Event() (EventWithAssignment, error) {
-	// get the availabilites associated with the event
+func (e eventDataDB) Event() (EventWithAssignment, error) {
+	// get the assignments associated with the event
 	if assignemnts, err := assignments.Event(e.Id); err != nil {
 		return EventWithAssignment{}, err
 	} else {
 		return EventWithAssignment{
-			eventDataDB: *e,
+			eventDataDB: e,
 			Tasks:       assignemnts,
+		}, nil
+	}
+}
+
+func (e eventDataDB) EventWithAvailabilities() (EventWithAvailabilities, error) {
+	// get the event with assignments
+	if event, err := e.Event(); err != nil {
+		return EventWithAvailabilities{}, err
+
+		// get the availabilities
+	} else if availabilities, err := availabilities.Event(e.Id); err != nil {
+		return EventWithAvailabilities{}, err
+	} else {
+		return EventWithAvailabilities{
+			EventWithAssignment: event,
+			Availabilities:      availabilities,
 		}, nil
 	}
 }
@@ -89,6 +111,25 @@ func WithAssignments() ([]EventWithAssignment, error) {
 		for ii, e := range eventsDB {
 			if ev, err := e.Event(); err != nil {
 				logger.Logger.Error().Msgf("can't get assignments for event with id = %d: %v", e.Id, err)
+			} else {
+				events[ii] = ev
+			}
+		}
+
+		return events, nil
+	}
+}
+
+func WithAvailabilities() ([]EventWithAvailabilities, error) {
+	// get all events
+	if eventsDB, err := All(); err != nil {
+		return nil, err
+	} else {
+		events := make([]EventWithAvailabilities, len(eventsDB))
+
+		for ii, e := range eventsDB {
+			if ev, err := e.EventWithAvailabilities(); err != nil {
+				logger.Logger.Error().Msgf("can't get availabilities for event with id = %d: %v", e.Id, err)
 			} else {
 				events[ii] = ev
 			}

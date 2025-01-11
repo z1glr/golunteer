@@ -73,8 +73,8 @@ func handleLogin(c *fiber.Ctx) error {
 			} else {
 				// password is correct -> generate the JWT
 				if jwt, err := config.SignJWT(JWTPayload{
-					UserID:  requestBody.Username,
-					TokenID: result.TokenID,
+					UserName: requestBody.Username,
+					TokenID:  result.TokenID,
 				}); err != nil {
 					response.Status = fiber.StatusInternalServerError
 					logger.Error().Msgf("can't create JWT: %v", err)

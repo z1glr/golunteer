@@ -2,7 +2,8 @@
 
 import AddEvent from "@/components/Event/AddEvent";
 import LocalDate from "@/components/LocalDate";
-import zustand, { Availability, EventData, Task, Tasks } from "@/Zustand";
+import { apiCall } from "@/lib";
+import { Availability, EventData, getTasks, Task } from "@/Zustand";
 import { Add, Copy, Edit, TrashCan } from "@carbon/icons-react";
 import {
 	Button,
@@ -25,6 +26,8 @@ import {
 import { useAsyncList } from "@react-stately/data";
 import React, { Key, useState } from "react";
 
+type EventWithAvailabilities = EventData & { availabilities: string[] };
+
 function availability2Tailwind(availability?: Availability) {
 	switch (availability) {
 		case "yes":
@@ -46,18 +49,37 @@ function availability2Color(availability?: Availability) {
 }
 
 export default function AdminPanel() {
-	const tasks = [
-		{ key: "date", label: "Date" },
-		{ key: "description", label: "Description" },
-		...Tasks.map((task) => ({ label: task, key: task })),
-		{ key: "actions", label: "Action" },
-	];
-
-	const list = useAsyncList({
+	// get the available tasks and craft them into the headers
+	const headers = useAsyncList({
 		async load() {
+			const tasks = await getTasks();
+
 			return {
-				items: [...zustand.getState().events],
+				items: [
+					{ key: "date", label: "Date" },
+					{ key: "description", label: "Description" },
+					...Object.entries(tasks)
+						.filter(([, task]) => !task.disabled)
+						.map(([id, task]) => ({ label: task.text, key: id })),
+					{ key: "actions", label: "Action" },
+				],
 			};
+		},
+	});
+
+	// get the individual events
+	const events = useAsyncList<EventWithAvailabilities>({
+		async load() {
+			const result = await apiCall<EventWithAvailabilities[]>(
+				"GET",
+				"events/availabilities",
+			);
+
+			if (result.ok) {
+				return { items: await result.json() };
+			} else {
+				return { items: [] };
+			}
 		},
 		async sort({ items, sortDescriptor }) {
 			return {
@@ -82,7 +104,10 @@ export default function AdminPanel() {
 		},
 	});
 
-	function getKeyValue(event: EventData, key: Key): React.ReactNode {
+	function getKeyValue(
+		event: EventWithAvailabilities,
+		key: Key,
+	): React.ReactNode {
 		switch (key) {
 			case "date":
 				return (
@@ -136,17 +161,17 @@ export default function AdminPanel() {
 						}}
 						className="[&_*]:overflow-visible"
 					>
-						{Object.entries(event.volunteers).map(
+						{Object.entries(event.availabilities).map(
 							([volunteer, availability]) => (
 								<SelectItem
 									key={volunteer}
-									color={availability2Color(availability)}
+									// color={availability2Color(availability)}
 									className={[
-										"text-" + availability2Color(availability),
-										availability2Tailwind(availability),
+										// "text-" + availability2Color(availability),
+										// availability2Tailwind(availability),
 									].join(" ")}
 								>
-									{volunteer}
+									{volunteer} ({availability})
 								</SelectItem>
 							),
 						)}
@@ -157,7 +182,7 @@ export default function AdminPanel() {
 
 	const [showAddEvent, setShowAddEvent] = useState(false);
 	const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-	const [activeEvent, setActiveEvent] = useState(zustand.getState().events[0]);
+	const [activeEvent, setActiveEvent] = useState<EventData | undefined>();
 
 	const topContent = (
 		<div>
@@ -181,8 +206,8 @@ export default function AdminPanel() {
 				topContent={topContent}
 				topContentPlacement="outside"
 				isHeaderSticky
-				sortDescriptor={list.sortDescriptor}
-				onSortChange={list.sort}
+				sortDescriptor={events.sortDescriptor}
+				onSortChange={events.sort}
 				classNames={{
 					wrapper: "bg-accent-4",
 					tr: "even:bg-accent-5 ",
@@ -191,7 +216,7 @@ export default function AdminPanel() {
 				}}
 				className="w-fit"
 			>
-				<TableHeader columns={tasks}>
+				<TableHeader columns={headers.items}>
 					{(task) => (
 						<TableColumn
 							allowsSorting={task.key === "date"}
@@ -202,7 +227,7 @@ export default function AdminPanel() {
 						</TableColumn>
 					)}
 				</TableHeader>
-				<TableBody items={list.items} emptyContent={"No events scheduled"}>
+				<TableBody items={events.items} emptyContent={"No events scheduled"}>
 					{(event) => (
 						<TableRow key={event.id}>
 							{(columnKey) => (
@@ -215,39 +240,41 @@ export default function AdminPanel() {
 
 			<AddEvent isOpen={showAddEvent} onOpenChange={setShowAddEvent} />
 
-			<Modal
-				isOpen={showDeleteConfirm}
-				onOpenChange={setShowDeleteConfirm}
-				shadow={"none" as "sm"}
-				backdrop="blur"
-				className="bg-accent-5"
-			>
-				<ModalContent>
-					<ModalHeader>
-						<h1 className="text-2xl">Confirm event deletion</h1>
-					</ModalHeader>
-					<ModalBody>
-						The event{" "}
-						<span className="font-numbers text-accent-1">
-							<LocalDate options={{ dateStyle: "long", timeStyle: "short" }}>
-								{activeEvent.date}
-							</LocalDate>
-						</span>{" "}
-						will be deleted.
-					</ModalBody>
-					<ModalFooter>
-						<Button startContent={<TrashCan />} color="danger">
-							Delete event
-						</Button>
-						<Button
-							variant="bordered"
-							onPress={() => setShowDeleteConfirm(false)}
-						>
-							Cancel
-						</Button>
-					</ModalFooter>
-				</ModalContent>
-			</Modal>
+			{activeEvent !== undefined ? (
+				<Modal
+					isOpen={showDeleteConfirm}
+					onOpenChange={setShowDeleteConfirm}
+					shadow={"none" as "sm"}
+					backdrop="blur"
+					className="bg-accent-5"
+				>
+					<ModalContent>
+						<ModalHeader>
+							<h1 className="text-2xl">Confirm event deletion</h1>
+						</ModalHeader>
+						<ModalBody>
+							The event{" "}
+							<span className="font-numbers text-accent-1">
+								<LocalDate options={{ dateStyle: "long", timeStyle: "short" }}>
+									{activeEvent.date}
+								</LocalDate>
+							</span>{" "}
+							will be deleted.
+						</ModalBody>
+						<ModalFooter>
+							<Button startContent={<TrashCan />} color="danger">
+								Delete event
+							</Button>
+							<Button
+								variant="bordered"
+								onPress={() => setShowDeleteConfirm(false)}
+							>
+								Cancel
+							</Button>
+						</ModalFooter>
+					</ModalContent>
+				</Modal>
+			) : null}
 		</div>
 	);
 }

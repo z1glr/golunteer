@@ -1,6 +1,6 @@
 import { useEffect, useReducer } from "react";
 import { Add } from "@carbon/icons-react";
-import zustand, { Task } from "../../Zustand";
+import zustand, { getTasks, Task } from "../../Zustand";
 import { getLocalTimeZone, now, ZonedDateTime } from "@internationalized/date";
 import {
 	Button,
@@ -54,20 +54,7 @@ export default function AddEvent(props: {
 
 	// get the available tasks
 	useEffect(() => {
-		(async () => {
-			const result = await apiCall<{ text: string; disabled: boolean }[]>(
-				"GET",
-				"tasks",
-			);
-
-			if (result.ok) {
-				const tasks = await result.json();
-
-				zustand.setState(() => ({
-					tasks,
-				}));
-			}
-		})();
+		void getTasks();
 	}, []);
 
 	// sends the addEvent request to the backend
