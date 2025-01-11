@@ -1,6 +1,5 @@
 "use client";
 
-import { DateFormatter as IntlDateFormatter } from "@internationalized/date";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { apiCall } from "./lib";
@@ -18,16 +17,18 @@ export interface EventData {
 	description: string;
 }
 
+export interface User {
+	userName: string;
+	admin: boolean;
+}
+
 interface Zustand {
 	events: EventData[];
 	pendingEvents: number;
-	user: {
-		userName: string;
-		admin: boolean;
-	} | null;
+	user: User | null;
 	setEvents: (events: EventData[]) => void;
 	reset: (zustand?: Partial<Zustand>) => void;
-	setPendingEvents: (c: number) => void;
+	getPendingEvents: () => Promise<void>;
 }
 
 const initialState = {
@@ -46,7 +47,18 @@ const zustand = create<Zustand>()(
 					...initialState,
 					...newZustand,
 				}),
-			setPendingEvents: (c) => set(() => ({ pendingEvents: c })),
+			getPendingEvents: async () => {
+				const result = await apiCall<{ pendingEvents: number }>(
+					"GET",
+					"events/user/pending",
+				);
+
+				if (result.ok) {
+					const resultData = await result.json();
+
+					set(() => ({ pendingEvents: resultData }));
+				}
+			},
 		}),
 		{
 			name: "golunteer-storage",
@@ -72,18 +84,6 @@ export async function getTasks(): Promise<
 		return tasks;
 	} else {
 		return [];
-	}
-}
-
-export class DateFormatter {
-	private formatter;
-
-	constructor(locale: string, options?: Intl.DateTimeFormatOptions) {
-		this.formatter = new IntlDateFormatter(locale, options);
-	}
-
-	format(dt: Date) {
-		return this.formatter.format(dt);
 	}
 }
 

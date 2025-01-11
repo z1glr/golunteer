@@ -14,13 +14,14 @@ import {
 	Navbar,
 	NavbarBrand,
 	NavbarContent,
-	NavbarItem,
 	NavbarMenu,
 	NavbarMenuToggle,
+	Tab,
+	Tabs,
 } from "@nextui-org/react";
 import zustand from "@/Zustand";
 import { SiteLink } from "./layout";
-import React, { useEffect } from "react";
+import React from "react";
 
 export default function Header({ sites }: { sites: SiteLink[] }) {
 	const router = useRouter();
@@ -68,21 +69,6 @@ export default function Header({ sites }: { sites: SiteLink[] }) {
 		}
 	}
 
-	// get the pending events for the counter
-	useEffect(() => {
-		(async () => {
-			const result = await apiCall<{ pendingEvents: number }>(
-				"GET",
-				"events/user/pending",
-			);
-
-			if (result.ok) {
-				const resultJson = await result.json();
-				zustand.getState().setPendingEvents(resultJson);
-			}
-		})();
-	}, []);
-
 	return (
 		<div>
 			<Navbar maxWidth="full">
@@ -110,19 +96,13 @@ export default function Header({ sites }: { sites: SiteLink[] }) {
 						</NavbarMenu>
 
 						<NavbarContent justify="center" className="hidden sm:flex">
-							{sites.map((s) =>
-								// if the site is no admin-site or the user is an admin, render it
-								!s.admin || user.admin ? (
-									<NavbarItem key={s.href} isActive={pathname === s.href}>
-										<Link
-											href={s.href}
-											color={pathname === s.href ? "primary" : "foreground"}
-										>
-											{s.text}
-										</Link>
-									</NavbarItem>
-								) : null,
-							)}
+							<Tabs selectedKey={pathname} color="default" variant="light">
+								{sites.map((s) =>
+									!s.admin || user.admin ? (
+										<Tab key={s.href} title={s.text} href={s.href} />
+									) : null,
+								)}
+							</Tabs>
 						</NavbarContent>
 
 						<NavbarContent justify="end">

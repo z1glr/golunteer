@@ -1,3 +1,5 @@
+import { DateFormatter as IntlDateFormatter } from "@internationalized/date";
+
 type QueryParams = Record<string, string | { toString(): string }>;
 
 export type APICallResult<T extends object> = Response & {
@@ -65,4 +67,16 @@ export function classNames(classNames: Record<string, boolean>): string {
 			}
 		})
 		.join(" ");
+}
+
+export class DateFormatter {
+	private formatter;
+
+	constructor(locale: string, options?: Intl.DateTimeFormatOptions) {
+		this.formatter = new IntlDateFormatter(locale, options);
+	}
+
+	format(dt: Date) {
+		return this.formatter.format(dt);
+	}
 }

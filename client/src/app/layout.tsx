@@ -34,6 +34,7 @@ export default function RootLayout({
 		{
 			text: "Assignments",
 			href: "/assignments",
+			admin: true,
 		},
 		{
 			text: "Admin",

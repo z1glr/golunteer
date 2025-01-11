@@ -88,3 +88,20 @@ func getEventsUserPending(args HandlerArgs) responseMessage {
 
 	return response
 }
+
+func deleteEvent(args HandlerArgs) responseMessage {
+	response := responseMessage{}
+
+	// check for admin
+	if !args.User.Admin {
+		response.Status = fiber.StatusForbidden
+
+		// -1 can't be valid
+	} else if eventId := args.C.QueryInt("id", -1); eventId == -1 {
+		response.Status = fiber.StatusBadRequest
+	} else if err := events.Delete(eventId); err != nil {
+		response.Status = fiber.StatusInternalServerError
+	}
+
+	return response
+}

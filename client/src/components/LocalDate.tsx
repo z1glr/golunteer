@@ -1,6 +1,6 @@
 "use local";
 
-import { DateFormatter } from "@/Zustand";
+import { DateFormatter } from "@/lib";
 import { getLocalTimeZone, parseDateTime } from "@internationalized/date";
 import { useLocale } from "@react-aria/i18n";
 

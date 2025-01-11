@@ -80,9 +80,14 @@ func init() {
 			"events/user/pending":   getEventsUserPending,
 			"tasks":                 getTasks,
 		},
-		"POST":   {"events": postEvent},
-		"PATCH":  {},
-		"DELETE": {},
+		"POST": {
+			"events": postEvent,
+			"users":  postUser,
+		},
+		"PATCH": {},
+		"DELETE": {
+			"event": deleteEvent,
+		},
 	}
 
 	// handle specific requests special

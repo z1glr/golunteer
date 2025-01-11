@@ -150,3 +150,9 @@ func UserPending(userName string) (int, error) {
 		return result.Count, nil
 	}
 }
+
+func Delete(eventId int) error {
+	_, err := db.DB.Exec("DELETE FROM EVENTS WHERE id = ?", eventId)
+
+	return err
+}
