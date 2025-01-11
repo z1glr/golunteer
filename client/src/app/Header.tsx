@@ -15,10 +15,12 @@ import {
 	NavbarBrand,
 	NavbarContent,
 	NavbarItem,
+	NavbarMenu,
+	NavbarMenuToggle,
 } from "@nextui-org/react";
 import zustand from "@/Zustand";
 import { SiteLink } from "./layout";
-import { useEffect } from "react";
+import React, { useEffect } from "react";
 
 export default function Header({ sites }: { sites: SiteLink[] }) {
 	const router = useRouter();
@@ -26,6 +28,33 @@ export default function Header({ sites }: { sites: SiteLink[] }) {
 	const pendingEvents = zustand((state) => state.pendingEvents);
 
 	const pathname = usePathname();
+
+	const badgeSites: {
+		content: React.ReactNode;
+		onPress?: () => void;
+		color?: "primary" | "secondary" | "success" | "warning" | "danger";
+		textValue?: string;
+	}[] = [
+		{
+			content: (
+				<>
+					<p>Signed in as</p>
+					<p className="text-primary">{user?.userName}</p>
+				</>
+			),
+			textValue: `Signed in as ${user?.userName}`,
+		},
+		{
+			content: "Account",
+			onPress: () => router.push("/account"),
+		},
+		{
+			content: <span className="text-danger">Logout</span>,
+			onPress: logout,
+			color: "danger",
+			textValue: "Logout",
+		},
+	];
 
 	async function logout() {
 		const result = await apiCall("GET", "logout");
@@ -57,13 +86,30 @@ export default function Header({ sites }: { sites: SiteLink[] }) {
 	return (
 		<div>
 			<Navbar maxWidth="full">
-				<NavbarBrand onClick={() => router.push("/")}>
-					<h1 className="font-display-headline text-xl">Golunteer</h1>
-				</NavbarBrand>
-
+				<NavbarContent>
+					<NavbarMenuToggle className="sm:hidden" />
+					<NavbarBrand onClick={() => router.push("/")}>
+						<h1 className="font-display-headline text-xl">Golunteer</h1>
+					</NavbarBrand>
+				</NavbarContent>
 				{user !== null ? (
 					<>
-						<NavbarContent justify="center">
+						<NavbarMenu className="pt-4">
+							{sites.map((s) =>
+								// if the site is no admin-site or the user is an admin, render it
+								!s.admin || user.admin ? (
+									<Link
+										key={s.href}
+										href={s.href}
+										color={pathname === s.href ? "primary" : "foreground"}
+									>
+										{s.text}
+									</Link>
+								) : null,
+							)}
+						</NavbarMenu>
+
+						<NavbarContent justify="center" className="hidden sm:flex">
 							{sites.map((s) =>
 								// if the site is no admin-site or the user is an admin, render it
 								!s.admin || user.admin ? (
@@ -91,28 +137,16 @@ export default function Header({ sites }: { sites: SiteLink[] }) {
 									</DropdownTrigger>
 								</Badge>
 								<DropdownMenu variant="flat">
-									<DropdownItem
-										key="profile"
-										className="h-14 gap-2"
-										textValue={`signed in as ${user.userName}`}
-									>
-										<p>Signed in as</p>
-										<p className="text-primary">{user.userName}</p>
-									</DropdownItem>
-									<DropdownItem
-										key="account"
-										onPress={() => router.push("/account")}
-									>
-										Account
-									</DropdownItem>
-									<DropdownItem
-										key="logout"
-										color="danger"
-										onPress={logout}
-										className="text-danger"
-									>
-										Log Out
-									</DropdownItem>
+									{badgeSites.map((site, ii) => (
+										<DropdownItem
+											key={ii}
+											onPress={site.onPress}
+											color={site.color}
+											textValue={site.textValue}
+										>
+											{site.content}
+										</DropdownItem>
+									))}
 								</DropdownMenu>
 							</Dropdown>
 						</NavbarContent>
