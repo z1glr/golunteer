@@ -15,8 +15,8 @@ type tasksDB struct {
 }
 
 type Task struct {
-	Text     string
-	Disabled bool
+	Text     string `json:"text"`
+	Disabled bool   `json:"disabled"`
 }
 
 var c *cache.Cache

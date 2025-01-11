@@ -6,14 +6,6 @@ import { persist } from "zustand/middleware";
 
 export type Task = string;
 
-export const Tasks: Task[] = [
-	"Audio",
-	"Livestream",
-	"Camera",
-	"Light",
-	"Stream Audio",
-];
-
 export type Availability = string;
 
 export const Availabilities: Availability[] = ["yes", "maybe", "no"];
@@ -21,7 +13,7 @@ export const Availabilities: Availability[] = ["yes", "maybe", "no"];
 export interface EventData {
 	id: number;
 	date: string;
-	tasks: Partial<Record<Task, string | undefined>>;
+	tasks: Partial<Record<Task, string | null>>;
 	description: string;
 }
 
@@ -32,6 +24,7 @@ interface Zustand {
 		userName: string;
 		admin: boolean;
 	} | null;
+	tasks?: Record<number, { text: string; disabled: boolean }>;
 	setEvents: (events: EventData[]) => void;
 	reset: (zustand?: Partial<Zustand>) => void;
 	setPendingEvents: (c: number) => void;

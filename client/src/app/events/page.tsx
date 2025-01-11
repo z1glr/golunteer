@@ -35,7 +35,9 @@ export default function Events() {
 			<div className="flex flex-wrap justify-center gap-4">
 				{events.map((ee, ii) => (
 					<Event key={ii} event={ee}>
-						<AssignmentTable tasks={ee.tasks} />
+						<div className="mt-auto">
+							<AssignmentTable tasks={ee.tasks} />
+						</div>
 					</Event>
 				))}
 			</div>

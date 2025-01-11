@@ -1,19 +1,22 @@
-import { useState } from "react";
+import { useEffect, useReducer } from "react";
 import { Add } from "@carbon/icons-react";
-import zustand, { EventData, Task, Tasks } from "../../Zustand";
+import zustand, { Task } from "../../Zustand";
 import { getLocalTimeZone, now, ZonedDateTime } from "@internationalized/date";
 import {
 	Button,
 	Checkbox,
 	CheckboxGroup,
 	DatePicker,
+	Form,
 	Modal,
 	ModalBody,
 	ModalContent,
 	ModalFooter,
 	ModalHeader,
+	Spinner,
 	Textarea,
 } from "@nextui-org/react";
+import { apiCall } from "@/lib";
 
 interface state {
 	date: ZonedDateTime;
@@ -21,33 +24,75 @@ interface state {
 	tasks: Task[];
 }
 
+interface dispatchAction {
+	action: "set" | "reset";
+	value?: Partial<state>;
+}
+
 export default function AddEvent(props: {
 	className?: string;
 	isOpen: boolean;
 	onOpenChange: (isOpen: boolean) => void;
 }) {
-	const [state, setState] = useState<state>({
+	// initial state for the inputs
+	const initialState: state = {
 		date: now(getLocalTimeZone()),
 		description: "",
 		tasks: [],
-	});
+	};
 
-	function addEvent() {
-		const eventData: EventData = {
-			date: state.date.toString(),
-			description: state.description,
-			id: zustand.getState().events.slice(-1)[0].id + 1,
-			tasks: {},
-			volunteers: {},
+	// handle state dispatches
+	function reducer(state: state, action: dispatchAction): state {
+		if (action.action === "reset") {
+			return initialState;
+		} else {
+			return { ...state, ...action.value };
+		}
+	}
+	const [state, dispatchState] = useReducer(reducer, initialState);
+	const tasks = zustand((state) => state.tasks);
+
+	// get the available tasks
+	useEffect(() => {
+		(async () => {
+			const result = await apiCall<{ text: string; disabled: boolean }[]>(
+				"GET",
+				"tasks",
+			);
+
+			if (result.ok) {
+				const tasks = await result.json();
+
+				zustand.setState(() => ({
+					tasks,
+				}));
+			}
+		})();
+	}, []);
+
+	// sends the addEvent request to the backend
+	async function addEvent() {
+		const data = {
+			...state,
+			tasks: state.tasks.map((task) => parseInt(task)),
+			date: state.date.toAbsoluteString().slice(0, -1),
 		};
 
-		// add all the tasks
-		state.tasks.forEach((task) => {
-			eventData.tasks[task] = undefined;
-		});
+		const result = await apiCall("POST", "events", undefined, data);
 
-		zustand.getState().addEvent(eventData);
+		if (result.ok) {
+			zustand.getState().setEvents(await result.json());
+
+			props.onOpenChange(false);
+		}
 	}
+
+	// reset the state when the modal gets closed
+	useEffect(() => {
+		if (!props.isOpen) {
+			dispatchState({ action: "reset" });
+		}
+	}, [props.isOpen]);
 
 	return (
 		<Modal
@@ -59,49 +104,77 @@ export default function AddEvent(props: {
 				base: "bg-accent-5 ",
 			}}
 		>
-			<ModalContent>
-				<ModalHeader>
-					<h1 className="text-2xl">Add Event</h1>
-				</ModalHeader>
-				<ModalBody>
-					<DatePicker
-						label="Event date"
-						variant="bordered"
-						hideTimeZone
-						granularity="minute"
-						value={state.date}
-						onChange={(dt) => (!!dt ? setState({ ...state, date: dt }) : null)}
-					/>
-					<Textarea
-						variant="bordered"
-						placeholder="Description"
-						value={state.description}
-						onValueChange={(desc) => setState({ ...state, description: desc })}
-					/>
-					<CheckboxGroup
-						value={state.tasks}
-						onValueChange={(newTasks) =>
-							setState({ ...state, tasks: newTasks })
-						}
-					>
-						{Tasks.map((task, ii) => (
-							<div key={ii}>
-								<Checkbox value={task}>{task}</Checkbox>
-							</div>
-						))}
-					</CheckboxGroup>
-				</ModalBody>
-				<ModalFooter>
-					<Button
-						color="primary"
-						radius="full"
-						startContent={<Add size={32} />}
-						onPress={addEvent}
-					>
-						Add
-					</Button>
-				</ModalFooter>
-			</ModalContent>
+			<Form
+				validationBehavior="native"
+				onSubmit={(e) => {
+					e.preventDefault();
+					void addEvent();
+				}}
+			>
+				<ModalContent>
+					<ModalHeader>
+						<h1 className="text-center text-2xl">Add Event</h1>
+					</ModalHeader>
+
+					<ModalBody>
+						<DatePicker
+							isRequired
+							label="Event date"
+							name="date"
+							variant="bordered"
+							hideTimeZone
+							granularity="minute"
+							value={state.date}
+							onChange={(dt) =>
+								!!dt
+									? dispatchState({ action: "set", value: { date: dt } })
+									: null
+							}
+						/>
+						<Textarea
+							variant="bordered"
+							placeholder="Description"
+							name="description"
+							value={state.description}
+							onValueChange={(s) =>
+								dispatchState({ action: "set", value: { description: s } })
+							}
+						/>
+						<CheckboxGroup
+							value={state.tasks}
+							name="tasks"
+							onValueChange={(s) =>
+								dispatchState({ action: "set", value: { tasks: s } })
+							}
+							validate={(value) =>
+								value.length > 0 ? true : "Atleast one task must be selected"
+							}
+						>
+							{tasks !== undefined ? (
+								Object.entries(tasks)
+									.filter(([, task]) => !task.disabled)
+									.map(([id, task]) => (
+										<div key={id}>
+											<Checkbox value={id}>{task.text}</Checkbox>
+										</div>
+									))
+							) : (
+								<Spinner label="Loading" />
+							)}
+						</CheckboxGroup>
+					</ModalBody>
+					<ModalFooter>
+						<Button
+							color="primary"
+							radius="full"
+							startContent={<Add size={32} />}
+							type="submit"
+						>
+							Add
+						</Button>
+					</ModalFooter>
+				</ModalContent>
+			</Form>
 		</Modal>
 	);
 }

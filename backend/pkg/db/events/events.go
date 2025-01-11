@@ -13,7 +13,7 @@ type EventWithAssignment struct {
 
 type eventDataDB struct {
 	Id          int    `db:"id" json:"id"`
-	Date        string `db:"date" json:"date"`
+	Date        string `db:"date" json:"date" validate:"required"`
 	Description string `db:"description" json:"description"`
 }
 
@@ -28,6 +28,45 @@ func (e *eventDataDB) Event() (EventWithAssignment, error) {
 			Tasks:       assignemnts,
 		}, nil
 	}
+}
+
+type EventCreate struct {
+	eventDataDB
+	Tasks []int `json:"tasks" validate:"required,min=1"`
+}
+
+func Create(event EventCreate) error {
+	if result, err := db.DB.NamedExec("INSERT INTO EVENTS (date, description) VALUES (:date, :description)", event); err != nil {
+		return err
+	} else if id, err := result.LastInsertId(); err != nil {
+		return err
+	} else {
+		// create an insert-slice with the id included
+		tasks := []struct {
+			TaskID  int   `db:"taskID"`
+			EventID int64 `db:"eventID"`
+		}{}
+
+		for _, taskID := range event.Tasks {
+			tasks = append(tasks, struct {
+				TaskID  int   "db:\"taskID\""
+				EventID int64 "db:\"eventID\""
+			}{
+				TaskID:  taskID,
+				EventID: id,
+			})
+		}
+
+		// create the assignments
+		if _, err := db.DB.NamedExec("INSERT INTO USER_ASSIGNMENTS (eventID, taskID) VALUES (:eventID, :taskID)", tasks); err != nil {
+			// delete the event again
+			db.DB.Query("DELETE FROM EVENTS WHERE id = ?", id)
+
+			return err
+		}
+	}
+
+	return nil
 }
 
 func All() ([]eventDataDB, error) {

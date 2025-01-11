@@ -74,8 +74,12 @@ func init() {
 
 	// map with the individual registered endpoints
 	endpoints := map[string]map[string]func(HandlerArgs) responseMessage{
-		"GET":    {"events/assignments": getEventsAssignments, "events/user/pending": getEventsUserPending},
-		"POST":   {},
+		"GET": {
+			"events/assignments":  getEventsAssignments,
+			"events/user/pending": getEventsUserPending,
+			"tasks":               getTasks,
+		},
+		"POST":   {"events": postEvent},
 		"PATCH":  {},
 		"DELETE": {},
 	}
