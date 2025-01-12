@@ -15,21 +15,23 @@ func handleWelcome(c *fiber.Ctx) error {
 		Admin: false,
 	}
 
-	if user, err := checkUser(c); err != nil {
+	args := HandlerArgs{C: c}
+
+	if loggedIn, err := args.checkUser(); err != nil {
 		response.Status = fiber.StatusInternalServerError
 
 		logger.Warn().Msgf("can't check user: %v", err)
-	} else if user == nil {
-		response.Status = fiber.StatusNoContent
+	} else if !loggedIn {
+		response.Status = fiber.StatusUnauthorized
 
 		logger.Debug().Msgf("user not authorized")
 	} else {
 		response.Data = UserChecked{
-			UserName: user.UserName,
-			Admin:    user.Admin,
+			UserName: args.User.UserName,
+			Admin:    args.User.Admin,
 		}
 
-		logger.Debug().Msgf("welcomed user %q", user.UserName)
+		logger.Debug().Msgf("welcomed user %q", args.User.UserName)
 	}
 
 	return response.send(c)
@@ -40,6 +42,8 @@ const messageWrongLogin = "Unkown user or wrong password"
 func handleLogin(c *fiber.Ctx) error {
 	logger.Debug().Msgf("HTTP %s request: %q", c.Method(), c.OriginalURL())
 
+	args := HandlerArgs{C: c}
+
 	// extract username and password from the request
 	requestBody := struct {
 		Username string `json:"userName" validate:"required"`
@@ -48,7 +52,7 @@ func handleLogin(c *fiber.Ctx) error {
 
 	var response responseMessage
 
-	if err := c.BodyParser(&requestBody); err != nil {
+	if err := args.C.BodyParser(&requestBody); err != nil {
 		logger.Debug().Msgf("can't parse login-body: %v", err)
 
 		response.Status = fiber.StatusBadRequest
@@ -79,7 +83,7 @@ func handleLogin(c *fiber.Ctx) error {
 					response.Status = fiber.StatusInternalServerError
 					logger.Error().Msgf("can't create JWT: %v", err)
 				} else {
-					setSessionCookie(c, &jwt)
+					args.setSessionCookie(&jwt)
 
 					response.Data = UserChecked{
 						UserName: requestBody.Username,
@@ -92,14 +96,18 @@ func handleLogin(c *fiber.Ctx) error {
 		}
 	}
 
-	return response.send(c)
+	return response.send(args.C)
 }
 
 // handles logout-requests
 func handleLogout(c *fiber.Ctx) error {
 	logger.Debug().Msgf("HTTP %s request: %q", c.Method(), c.OriginalURL())
 
-	removeSessionCookie(c)
+	args := HandlerArgs{
+		C: c,
+	}
+
+	args.removeSessionCookie()
 
 	return responseMessage{}.send(c)
 }

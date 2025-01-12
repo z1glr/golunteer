@@ -79,6 +79,7 @@ func init() {
 			"events/availabilities": getEventsAvailabilities,
 			"events/user/pending":   getEventsUserPending,
 			"tasks":                 getTasks,
+			"users":                 getUsers,
 		},
 		"POST": {
 			"events": postEvent,
@@ -86,6 +87,7 @@ func init() {
 		},
 		"PATCH": {
 			"users/password": patchPassword,
+			"users":          patchUser,
 		},
 		"DELETE": {
 			"event": deleteEvent,
@@ -104,24 +106,24 @@ func init() {
 				logger.Debug().Msgf("HTTP %s request: %q", c.Method(), c.OriginalURL())
 
 				var response responseMessage
+				args := HandlerArgs{
+					C: c,
+				}
 
-				if user, err := checkUser(c); err != nil {
+				if loggedIn, err := args.checkUser(); err != nil {
 					response = responseMessage{
 						Status: fiber.StatusBadRequest,
 					}
 
 					logger.Error().Msgf("can't check user: %v", err)
-				} else if user == nil {
+				} else if !loggedIn {
 					response = responseMessage{
-						Status: fiber.StatusNoContent,
+						Status: fiber.StatusUnauthorized,
 					}
 
 					logger.Log().Msgf("user not authorized")
 				} else {
-					response = handler(HandlerArgs{
-						C:    c,
-						User: *user,
-					})
+					response = handler(args)
 				}
 
 				return response.send(c)
@@ -137,16 +139,16 @@ func Listen() {
 	fmt.Println(err)
 }
 
-func setSessionCookie(c *fiber.Ctx, jwt *string) {
+func (args HandlerArgs) setSessionCookie(jwt *string) {
 	var value string
 
 	if jwt == nil {
-		value = c.Cookies("session")
+		value = args.C.Cookies("session")
 	} else {
 		value = *jwt
 	}
 
-	c.Cookie(&fiber.Cookie{
+	args.C.Cookie(&fiber.Cookie{
 		Name:     "session",
 		Value:    value,
 		HTTPOnly: true,
@@ -156,8 +158,8 @@ func setSessionCookie(c *fiber.Ctx, jwt *string) {
 }
 
 // removes the session-coockie from a request
-func removeSessionCookie(c *fiber.Ctx) {
-	c.Cookie(&fiber.Cookie{
+func (args HandlerArgs) removeSessionCookie() {
+	args.C.Cookie(&fiber.Cookie{
 		Name:     "session",
 		Value:    "",
 		HTTPOnly: true,
@@ -219,11 +221,11 @@ type UserChecked struct {
 }
 
 // checks wether the request is from a valid user
-func checkUser(c *fiber.Ctx) (*UserChecked, error) {
-	userName, tokenID, err := extractJWT(c)
+func (args *HandlerArgs) checkUser() (bool, error) {
+	userName, tokenID, err := extractJWT(args.C)
 
 	if err != nil {
-		return nil, nil
+		return false, nil
 	}
 
 	var dbResult struct {
@@ -232,19 +234,21 @@ func checkUser(c *fiber.Ctx) (*UserChecked, error) {
 	}
 
 	// retrieve the user from the database
-	if err := db.DB.QueryRowx("SELECT tokenID, admin FROM USERS WHERE name = ?", userName).StructScan(&dbResult); err != nil {
-		return nil, err
+	if err := db.DB.Get(&dbResult, "SELECT tokenID, admin FROM USERS WHERE name = ?", userName); err != nil {
+		return false, err
 
 		// if the tokenID is valid, the user is authorized
 	} else if dbResult.TokenID != tokenID {
-		return nil, err
+		return false, nil
 	} else {
 		// reset the expiration of the cookie
-		setSessionCookie(c, nil)
+		args.setSessionCookie(nil)
 
-		return &UserChecked{
+		args.User = UserChecked{
 			UserName: userName,
 			Admin:    dbResult.Admin,
-		}, err
+		}
+		return true, nil
+
 	}
 }

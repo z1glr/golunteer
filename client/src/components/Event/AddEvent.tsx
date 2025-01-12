@@ -33,6 +33,7 @@ export default function AddEvent(props: {
 	className?: string;
 	isOpen: boolean;
 	onOpenChange: (isOpen: boolean) => void;
+	onSuccess?: () => void;
 }) {
 	// initial state for the inputs
 	const initialState: state = {
@@ -73,6 +74,8 @@ export default function AddEvent(props: {
 			zustand.getState().setEvents(await result.json());
 
 			props.onOpenChange(false);
+
+			props.onSuccess?.();
 		}
 	}
 

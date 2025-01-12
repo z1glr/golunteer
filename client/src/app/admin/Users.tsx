@@ -9,22 +9,33 @@ import {
 	TableColumn,
 	TableHeader,
 	TableRow,
+	Tooltip,
 } from "@nextui-org/react";
 import { useAsyncList } from "@react-stately/data";
 import { FormEvent, useState } from "react";
 import AddUser from "./AddUser";
+import { Edit } from "@carbon/icons-react";
+import EditUser from "./EditUser";
 
 export default function Users() {
 	const [showAddUser, setShowAddUser] = useState(false);
+	const [editUser, setEditUser] = useState<User | undefined>();
+
 	const users = useAsyncList<User>({
 		async load() {
-			return {
-				items: [
-					{ userName: "admin", admin: true },
-					{ userName: "foo", admin: false },
-					{ userName: "bar", admin: true },
-				],
-			};
+			const result = await apiCall("GET", "users");
+
+			if (result.ok) {
+				const users = (await result.json()) as User[];
+
+				return {
+					items: users,
+				};
+			} else {
+				return {
+					items: [],
+				};
+			}
 		},
 		async sort({ items, sortDescriptor }) {
 			return {
@@ -67,6 +78,7 @@ export default function Users() {
 		}
 	}
 
+	// content above the user-tabel
 	const topContent = (
 		<>
 			<Button onPress={() => setShowAddUser(true)}>Add User</Button>
@@ -90,6 +102,7 @@ export default function Users() {
 					<TableColumn allowsSorting key="admin">
 						Admin
 					</TableColumn>
+					<TableColumn key="edit">Edit</TableColumn>
 				</TableHeader>
 				<TableBody items={users.items}>
 					{(user) => (
@@ -97,6 +110,18 @@ export default function Users() {
 							<TableCell>{user.userName}</TableCell>
 							<TableCell>
 								<Checkbox isSelected={user.admin} />
+							</TableCell>
+							<TableCell>
+								<Button
+									isIconOnly
+									variant="light"
+									size="sm"
+									onPress={() => setEditUser(user)}
+								>
+									<Tooltip content="Edit event">
+										<Edit />
+									</Tooltip>
+								</Button>
 							</TableCell>
 						</TableRow>
 					)}
@@ -107,6 +132,17 @@ export default function Users() {
 				isOpen={showAddUser}
 				onOpenChange={setShowAddUser}
 				onSubmit={(e) => void addUser(e)}
+			/>
+			<EditUser
+				isOpen={editUser !== undefined}
+				user={editUser}
+				onOpenChange={(isOpen) =>
+					!isOpen ? setEditUser(undefined) : undefined
+				}
+				onSuccess={() => {
+					users.reload();
+					setEditUser(undefined);
+				}}
 			/>
 		</div>
 	);

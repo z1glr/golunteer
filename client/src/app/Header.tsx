@@ -21,12 +21,25 @@ import {
 } from "@nextui-org/react";
 import zustand from "@/Zustand";
 import { SiteLink } from "./layout";
-import React from "react";
+import React, { useEffect, useState } from "react";
 
 export default function Header({ sites }: { sites: SiteLink[] }) {
 	const router = useRouter();
 	const user = zustand((state) => state.user);
-	const pendingEvents = zustand((state) => state.pendingEvents);
+	const [pendingEvents, setPendingEvents] = useState(0);
+
+	useEffect(() => {
+		(async () => {
+			const result = await apiCall<{ pendingEvents: number }>(
+				"GET",
+				"events/user/pending",
+			);
+
+			if (result.ok) {
+				setPendingEvents(await result.json());
+			}
+		})();
+	}, []);
 
 	const pathname = usePathname();
 

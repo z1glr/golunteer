@@ -15,8 +15,6 @@ export default function Events() {
 
 	useEffect(() => {
 		(async () => {
-			console.debug("query");
-
 			const data = await apiCall<EventData[]>("GET", "events/assignments");
 
 			if (data.ok) {

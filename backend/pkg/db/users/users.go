@@ -1,42 +1,45 @@
 package users
 
 import (
-	"fmt"
-	"time"
-
 	"github.com/google/uuid"
-	cache "github.com/jfarleyx/go-simple-cache"
 	"github.com/johannesbuehl/golunteer/backend/pkg/db"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type User struct {
-	Name     string `db:"name"`
-	Password []byte `db:"password"`
-	TokenID  string `db:"tokenID"`
-	Admin    bool   `db:"admin"`
+	Name  string `db:"name" json:"userName"`
+	Admin bool   `db:"admin" json:"admin"`
 }
-
-var c *cache.Cache
 
 // hashes a password
 func hashPassword(password string) ([]byte, error) {
 	return bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 }
 
-func Get() (map[string]User, error) {
-	if users, hit := c.Get("users"); !hit {
-		refresh()
+func Get() ([]User, error) {
+	// get the users from the database
+	var users []User
 
-		return nil, fmt.Errorf("users not cached")
+	if err := db.DB.Select(&users, "SELECT name, admin FROM USERS"); err != nil {
+		return nil, err
 	} else {
-		return users.(map[string]User), nil
+		return users, nil
 	}
+}
+
+func TokenID(userName string) (string, error) {
+	var dbResult struct {
+		TokenID string `db:"tokenID"`
+	}
+
+	err := db.DB.Get(&dbResult, "SELECT tokenID FROM USERS WHERE name = ?", userName)
+
+	return dbResult.TokenID, err
 }
 
 type UserAdd struct {
 	UserName string `json:"userName" validate:"required" db:"userName"`
-	Password string `json:"password" validate:"required,min=12"`
+	Password string `json:"password" validate:"required,min=12,max=64"`
 	Admin    bool   `json:"admin" db:"admin"`
 }
 
@@ -55,13 +58,9 @@ func Add(user UserAdd) error {
 			TokenID:  uuid.NewString(),
 		}
 
-		if _, err := db.DB.NamedExec("INSERT INTO USERS (name, password, admin, tokenID) VALUES (:userName, :password, :admin, :tokenID)", insertUser); err != nil {
-			return err
-		} else {
-			refresh()
+		_, err := db.DB.NamedExec("INSERT INTO USERS (name, password, admin, tokenID) VALUES (:userName, :password, :admin, :tokenID)", insertUser)
 
-			return nil
-		}
+		return err
 	}
 }
 
@@ -88,33 +87,19 @@ func ChangePassword(user UserChangePassword) (string, error) {
 		if _, err := db.DB.NamedExec("UPDATE USERS SET tokenID = :tokenID, password = :password WHERE name = :userName", execStruct); err != nil {
 			return "", err
 		} else {
-			refresh()
-
 			return execStruct.TokenID, nil
 		}
 	}
 }
 
-func refresh() {
-	// get the usersRaw from the database
-	var usersRaw []User
+func ChangeName(userName, newName string) error {
+	_, err := db.DB.Exec("UPDATE USERS SET name = ? WHERE name = ?", newName, userName)
 
-	if err := db.DB.Select(&usersRaw, "SELECT * FROM USERS"); err == nil {
-		// convert the result in a map
-		users := map[string]User{}
-
-		for _, user := range usersRaw {
-			users[user.Name] = user
-		}
-
-		c.Set("users", users)
-	}
+	return err
 }
 
-func init() {
-	c = cache.New(24 * time.Hour)
+func SetAdmin(userName string, admin bool) error {
+	_, err := db.DB.Exec("UPDATE USERS SET admin = ? WHERE name = ?", admin, userName)
 
-	c.OnExpired(refresh)
-
-	refresh()
+	return err
 }

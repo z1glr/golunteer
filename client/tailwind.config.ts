@@ -20,7 +20,20 @@ export default {
 	theme: {
 		extend: {
 			colors: {
-				highlight: HIGHLIGHT,
+				highlight: {
+					DEFAULT: HIGHLIGHT,
+					"50": "hsl(0,85.7%,97.3%)",
+					"100": "hsl(0,93.3%,94.1%)",
+					"200": "hsl(0,96.3%,89.4%)",
+					"300": "hsl(0,93.5%,81.8%)",
+					"400": "hsl(0,90.6%,70.8%)",
+					"500": "hsl(0,84.2%,60.2%)",
+					"600": "hsl(0,72.2%,50.6%)",
+					"700": "hsl(0,73.7%,41.8%)",
+					"800": "hsl(0,70%,35.3%)",
+					"900": "hsl(0,62.8%,30.6%)",
+					"950": "hsl(0,74.7%,15.5%)",
+				},
 				foreground: FOREGROUND,
 				"accent-1": ACCENT1,
 				"accent-2": ACCENT2,

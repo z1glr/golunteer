@@ -27,9 +27,6 @@ export default function Login() {
 			// add the user-info to the zustand
 			zustand.getState().reset({ user: await result.json() });
 
-			// retrieve the notifications
-			await zustand.getState().getPendingEvents();
-
 			// redirect to the home-page
 			router.push("/");
 		} else {

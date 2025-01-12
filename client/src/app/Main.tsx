@@ -18,6 +18,7 @@ export default function Main({ children }: { children: React.ReactNode }) {
 
 	const router = useRouter();
 	const pathname = usePathname();
+	const user = zustand((state) => state.user);
 
 	useEffect(() => {
 		void (async () => {
@@ -34,14 +35,13 @@ export default function Main({ children }: { children: React.ReactNode }) {
 						const response = await welcomeResult.json();
 
 						if (response.userName !== undefined && response.userName !== "") {
-							void zustand.getState().getPendingEvents();
-
 							zustand.getState().reset({ user: response });
 
 							loggedIn = true;
 						}
 					} catch {}
 				} else {
+					zustand.getState().reset();
 				}
 			} else {
 				loggedIn = true;
@@ -62,7 +62,7 @@ export default function Main({ children }: { children: React.ReactNode }) {
 				}
 			}
 		})();
-	}, [pathname, router]);
+	}, [pathname, router, user]);
 
 	switch (auth) {
 		case AuthState.Loading:

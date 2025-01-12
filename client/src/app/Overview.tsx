@@ -1,11 +1,8 @@
 "use client";
 
 import { Add } from "@carbon/icons-react";
-import Event from "../components/Event/Event";
 import { useState } from "react";
 import AddEvent from "../components/Event/AddEvent";
-import zustand from "../Zustand";
-import AssignmentTable from "@/components/Event/AssignmentTable";
 import { Button } from "@nextui-org/react";
 
 export default function EventVolunteer() {
@@ -14,13 +11,7 @@ export default function EventVolunteer() {
 	return (
 		<div className="relative flex-1">
 			<h2 className="mb-4 text-center text-4xl">Overview</h2>
-			<div className="flex flex-wrap justify-center gap-4">
-				{zustand.getState().events.map((ee) => (
-					<Event key={ee.id} event={ee}>
-						<AssignmentTable tasks={ee.tasks} />
-					</Event>
-				))}
-			</div>
+			<div className="flex flex-wrap justify-center gap-4"></div>
 
 			<Button
 				color="primary"

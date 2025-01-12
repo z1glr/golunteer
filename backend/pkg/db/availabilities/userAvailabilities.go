@@ -2,7 +2,6 @@ package availabilities
 
 import (
 	"github.com/johannesbuehl/golunteer/backend/pkg/db"
-	"github.com/johannesbuehl/golunteer/backend/pkg/db/users"
 )
 
 type eventAvailabilities struct {
@@ -23,11 +22,9 @@ func Event(eventID int) (map[string]string, error) {
 		// get the availabilities
 		if availabilitiesMap, err := Keys(); err != nil {
 			return nil, err
-		} else if usersMap, err := users.Get(); err != nil {
-			return nil, err
 		} else {
 			for _, a := range availabilitiesRows {
-				eventAvailabilities[usersMap[a.UserName].Name] = availabilitiesMap[a.AvailabilityID].Text
+				eventAvailabilities[a.UserName] = availabilitiesMap[a.AvailabilityID].Text
 			}
 
 			return eventAvailabilities, nil

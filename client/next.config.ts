@@ -10,7 +10,7 @@ const nextConfig: NextConfig = {
 		fallback: [
 			{
 				source: "/api/:path*",
-				destination: "http://golunteer-frontend:8080/api/:path*",
+				destination: "http://golunteer-backend:8080/api/:path*",
 			},
 		],
 	}),

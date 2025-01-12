@@ -84,8 +84,10 @@ export class DateFormatter {
 export function vaidatePassword(password: string): string[] {
 	const errors = [];
 
-	if (password.length < 1) {
-		errors.push("Password must be 16 characters or more");
+	if (password.length < 12) {
+		errors.push("Password must be 12 characters or more");
+	} else if (password.length > 64) {
+		errors.push("Password must be 64 characters or short");
 	}
 
 	return errors;

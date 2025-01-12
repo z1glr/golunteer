@@ -25,7 +25,6 @@ export default function AddUser(props: {
 			onOpenChange={props.onOpenChange}
 			shadow={"none" as "sm"}
 			backdrop="blur"
-			className="bg-accent-5"
 		>
 			<ModalContent>
 				<ModalHeader>
