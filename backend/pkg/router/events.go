@@ -8,37 +8,65 @@ import (
 func postEvent(args HandlerArgs) responseMessage {
 	response := responseMessage{}
 
-	// write the event
-	var body events.EventCreate
-
-	// try to parse the body
-	if err := args.C.BodyParser(&body); err != nil {
-		response.Status = fiber.StatusBadRequest
-
-		logger.Log().Msgf("can't parse body: %v", err)
-
-		// validate the parsed body
-	} else if err := validate.Struct(body); err != nil {
-		response.Status = fiber.StatusBadRequest
-
-		logger.Log().Msgf("invalid body: %v", err)
-
-		// create the event
-	} else if err := events.Create(body); err != nil {
-		response.Status = fiber.StatusInternalServerError
-
-		logger.Error().Msgf("can't create event: %v", err)
+	// check admin
+	if !args.User.Admin {
+		response.Status = fiber.StatusForbidden
 	} else {
-		// respond with the new events
-		if events, err := events.WithAssignments(); err != nil {
+
+		// write the event
+		var body events.EventCreate
+
+		// try to parse the body
+		if err := args.C.BodyParser(&body); err != nil {
+			response.Status = fiber.StatusBadRequest
+
+			logger.Log().Msgf("can't parse body: %v", err)
+
+			// validate the parsed body
+		} else if err := validate.Struct(body); err != nil {
+			response.Status = fiber.StatusBadRequest
+
+			logger.Log().Msgf("invalid body: %v", err)
+
+			// create the event
+		} else if err := events.Create(body); err != nil {
 			response.Status = fiber.StatusInternalServerError
 
-			logger.Error().Msgf("can't retrieve events: %v", err)
-		} else {
-			response.Data = events
+			logger.Error().Msgf("can't create event: %v", err)
 		}
 	}
 
+	return response
+}
+
+func patchEvent(args HandlerArgs) responseMessage {
+	response := responseMessage{}
+
+	// check admin
+	if !args.User.Admin {
+		response.Status = fiber.StatusForbidden
+	} else {
+		// parse the body
+		var body events.EventPatch
+
+		if err := args.C.BodyParser(&body); err != nil {
+			response.Status = fiber.StatusBadRequest
+
+			logger.Log().Msgf("can't parse body: %v", err)
+
+			// validate the body
+		} else if err := validate.Struct(body); err != nil {
+			response.Status = fiber.StatusBadRequest
+
+			logger.Log().Msgf("ivnalid body: %v", err)
+
+			// update the event
+		} else if err := events.Update(body); err != nil {
+			response.Status = fiber.StatusInternalServerError
+
+			logger.Error().Msgf("updating the event failed: %v", err)
+		}
+	}
 	return response
 }
 

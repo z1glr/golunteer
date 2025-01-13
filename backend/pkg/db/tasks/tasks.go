@@ -9,7 +9,7 @@ import (
 )
 
 type tasksDB struct {
-	Id       int    `db:"id"`
+	ID       int    `db:"id"`
 	Text     string `db:"text"`
 	Disabled bool   `db:"disabled"`
 }
@@ -40,7 +40,7 @@ func refresh() {
 		tasks := map[int]Task{}
 
 		for _, a := range tasksRaw {
-			tasks[a.Id] = Task{
+			tasks[a.ID] = Task{
 				Text:     a.Text,
 				Disabled: a.Disabled,
 			}

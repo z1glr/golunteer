@@ -54,7 +54,7 @@ func postUser(args HandlerArgs) responseMessage {
 	return response
 }
 
-func patchPassword(args HandlerArgs) responseMessage {
+func putPassword(args HandlerArgs) responseMessage {
 	response := responseMessage{}
 	// parse the body
 	var body users.UserChangePassword

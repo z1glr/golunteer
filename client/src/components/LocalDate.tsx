@@ -5,7 +5,7 @@ import { getLocalTimeZone, parseDateTime } from "@internationalized/date";
 import { useLocale } from "@react-aria/i18n";
 
 export default function LocalDate(props: {
-	children: string;
+	children?: string;
 	className?: string;
 	options: Intl.DateTimeFormatOptions;
 }) {
@@ -13,9 +13,11 @@ export default function LocalDate(props: {
 
 	return (
 		<span className={props.className}>
-			{formatter.format(
-				parseDateTime(props.children).toDate(getLocalTimeZone()),
-			)}
+			{props.children !== undefined
+				? formatter.format(
+						parseDateTime(props.children).toDate(getLocalTimeZone()),
+					)
+				: ""}
 		</span>
 	);
 }

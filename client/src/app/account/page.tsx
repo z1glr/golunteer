@@ -19,7 +19,7 @@ export default function Account() {
 	async function changePassword(e: FormEvent<HTMLFormElement>) {
 		const data = Object.fromEntries(new FormData(e.currentTarget));
 
-		const result = await apiCall("PATCH", "users/password", undefined, data);
+		const result = await apiCall("PUT", "users/password", undefined, data);
 
 		if (result.ok) {
 			setPassword("");
@@ -28,9 +28,9 @@ export default function Account() {
 
 	return (
 		<>
-			<h2 className="text-center text-4xl">Account</h2>
+			<h2 className="mb-4 text-center text-4xl">Account</h2>
 			<div>
-				<Card className="max-w-md">
+				<Card className="mx-auto max-w-md bg-accent-5" shadow="none">
 					<CardHeader>
 						<h3 className="text-2xl">Change Password</h3>
 					</CardHeader>

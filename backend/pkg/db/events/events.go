@@ -1,6 +1,8 @@
 package events
 
 import (
+	"slices"
+
 	"github.com/johannesbuehl/golunteer/backend/pkg/db"
 	"github.com/johannesbuehl/golunteer/backend/pkg/db/assignments"
 	"github.com/johannesbuehl/golunteer/backend/pkg/db/availabilities"
@@ -18,7 +20,7 @@ type EventWithAvailabilities struct {
 }
 
 type eventDataDB struct {
-	Id          int    `db:"id" json:"id"`
+	ID          int    `db:"id" json:"id" validate:"required"`
 	Date        string `db:"date" json:"date" validate:"required"`
 	Description string `db:"description" json:"description"`
 }
@@ -26,7 +28,7 @@ type eventDataDB struct {
 // transform the database-entry to an Event
 func (e eventDataDB) Event() (EventWithAssignment, error) {
 	// get the assignments associated with the event
-	if assignemnts, err := assignments.Event(e.Id); err != nil {
+	if assignemnts, err := assignments.Event(e.ID); err != nil {
 		return EventWithAssignment{}, err
 	} else {
 		return EventWithAssignment{
@@ -42,7 +44,7 @@ func (e eventDataDB) EventWithAvailabilities() (EventWithAvailabilities, error) 
 		return EventWithAvailabilities{}, err
 
 		// get the availabilities
-	} else if availabilities, err := availabilities.Event(e.Id); err != nil {
+	} else if availabilities, err := availabilities.Event(e.ID); err != nil {
 		return EventWithAvailabilities{}, err
 	} else {
 		return EventWithAvailabilities{
@@ -53,8 +55,9 @@ func (e eventDataDB) EventWithAvailabilities() (EventWithAvailabilities, error) 
 }
 
 type EventCreate struct {
-	eventDataDB
-	Tasks []int `json:"tasks" validate:"required,min=1"`
+	Date        string `db:"date" json:"date" validate:"required"`
+	Description string `db:"description" json:"description"`
+	Tasks       []int  `json:"tasks" validate:"required,min=1"`
 }
 
 func Create(event EventCreate) error {
@@ -91,6 +94,69 @@ func Create(event EventCreate) error {
 	return nil
 }
 
+type EventPatch struct {
+	eventDataDB
+	Tasks []int `json:"tasks" validate:"required,min=1"`
+}
+
+func Update(event EventPatch) error {
+	// update the event itself
+	if _, err := db.DB.NamedExec("UPDATE EVENTS SET description = :description, date = :date WHERE id = :id", event); err != nil {
+		return err
+
+		// get the tasks currently assigned to the event
+	} else {
+		type TaskID struct {
+			ID int `db:"taskID"`
+		}
+
+		var taskRows []TaskID
+
+		if err := db.DB.Select(&taskRows, "SELECT taskID FROM USER_ASSIGNMENTS WHERE eventID = ?", event.ID); err != nil {
+			return err
+		} else {
+			type Task struct {
+				TaskID
+				EventID int `db:"eventID"`
+			}
+
+			// extract the rows that need to be deleted
+			deleteRows := []Task{}
+
+			for _, row := range taskRows {
+				if !slices.Contains(event.Tasks, row.ID) {
+					deleteRows = append(deleteRows, Task{TaskID: row, EventID: event.ID})
+				}
+			}
+
+			// extract the rows that need to be created
+			createRows := []Task{}
+
+			for _, id := range event.Tasks {
+				if !slices.Contains(taskRows, TaskID{ID: id}) {
+					createRows = append(createRows, Task{TaskID: TaskID{ID: id}, EventID: event.ID})
+				}
+			}
+
+			// delete the no longer needed rows
+			if len(deleteRows) > 0 {
+				if _, err := db.DB.NamedExec("DELETE FROM USER_ASSIGNMENTS WHERE eventID = :eventID AND taskID = :taskID", deleteRows); err != nil {
+					return err
+				}
+			}
+
+			// create the new tasks
+			if len(createRows) > 0 {
+				if _, err := db.DB.NamedExec("INSERT INTO USER_ASSIGNMENTS (eventID, taskID) VALUES (:eventID, :taskID)", createRows); err != nil {
+					return err
+				}
+			}
+
+			return nil
+		}
+	}
+}
+
 func All() ([]eventDataDB, error) {
 	var dbRows []eventDataDB
 
@@ -110,7 +176,7 @@ func WithAssignments() ([]EventWithAssignment, error) {
 
 		for ii, e := range eventsDB {
 			if ev, err := e.Event(); err != nil {
-				logger.Logger.Error().Msgf("can't get assignments for event with id = %d: %v", e.Id, err)
+				logger.Logger.Error().Msgf("can't get assignments for event with id = %d: %v", e.ID, err)
 			} else {
 				events[ii] = ev
 			}
@@ -129,7 +195,7 @@ func WithAvailabilities() ([]EventWithAvailabilities, error) {
 
 		for ii, e := range eventsDB {
 			if ev, err := e.EventWithAvailabilities(); err != nil {
-				logger.Logger.Error().Msgf("can't get availabilities for event with id = %d: %v", e.Id, err)
+				logger.Logger.Error().Msgf("can't get availabilities for event with id = %d: %v", e.ID, err)
 			} else {
 				events[ii] = ev
 			}

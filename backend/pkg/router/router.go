@@ -69,6 +69,7 @@ func init() {
 		"GET":    app.Get,
 		"POST":   app.Post,
 		"PATCH":  app.Patch,
+		"PUT":    app.Put,
 		"DELETE": app.Delete,
 	}
 
@@ -86,8 +87,11 @@ func init() {
 			"users":  postUser,
 		},
 		"PATCH": {
-			"users/password": patchPassword,
-			"users":          patchUser,
+			"users":  patchUser,
+			"events": patchEvent,
+		},
+		"PUT": {
+			"users/password": putPassword,
 		},
 		"DELETE": {
 			"event": deleteEvent,

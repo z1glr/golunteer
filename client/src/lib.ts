@@ -9,32 +9,32 @@ export type APICallResult<T extends object> = Response & {
 export async function apiCall<K extends object>(
 	method: "GET",
 	api: string,
-	params?: QueryParams,
+	query?: QueryParams,
 ): Promise<APICallResult<K>>;
 export async function apiCall<K extends object>(
-	method: "POST" | "PATCH",
+	method: "POST" | "PATCH" | "PUT",
 	api: string,
-	params?: QueryParams,
+	query?: QueryParams,
 	body?: object,
 ): Promise<APICallResult<K>>;
 export async function apiCall<K extends object>(
 	method: "DELETE",
 	api: string,
-	params?: QueryParams,
+	query?: QueryParams,
 	body?: object,
 ): Promise<APICallResult<K>>;
 export async function apiCall<K extends object>(
-	method: "GET" | "POST" | "PATCH" | "DELETE",
+	method: "GET" | "POST" | "PATCH" | "PUT" | "DELETE",
 	api: string,
-	params?: QueryParams,
+	query?: QueryParams,
 	body?: object,
 ): Promise<APICallResult<K>> {
 	let url = window.origin + "/api/" + api;
 
-	if (params) {
+	if (query) {
 		const urlsearchparams = new URLSearchParams(
 			Object.fromEntries(
-				Object.entries(params).map(([key, value]): [string, string] => {
+				Object.entries(query).map(([key, value]): [string, string] => {
 					if (typeof value !== "string") {
 						return [key, value.toString()];
 					} else {
@@ -109,6 +109,6 @@ export async function getTasks(): Promise<Record<number, Task>> {
 
 		return tasks;
 	} else {
-		return [];
+		return {};
 	}
 }

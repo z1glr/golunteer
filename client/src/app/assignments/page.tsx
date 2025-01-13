@@ -1,6 +1,7 @@
 "use client";
 
 import AddEvent from "@/components/Event/AddEvent";
+import EditEvent, { EventSubmitData } from "@/components/Event/EditEvent";
 import LocalDate from "@/components/LocalDate";
 import { apiCall, getTasks } from "@/lib";
 import { EventData } from "@/Zustand";
@@ -10,6 +11,7 @@ import {
 	Copy,
 	Edit,
 	NotAvailable,
+	Renew,
 	TrashCan,
 } from "@carbon/icons-react";
 import {
@@ -59,6 +61,10 @@ function availability2Color(availability?: Availability) {
 }
 
 export default function AdminPanel() {
+	const [showAddEvent, setShowAddEvent] = useState(false);
+	const [editEvent, setEditEvent] = useState<EventData | undefined>();
+	const [deleteEvent, setDeleteEvent] = useState<EventData | undefined>();
+
 	// get the available tasks and craft them into the headers
 	const headers = useAsyncList({
 		async load() {
@@ -115,14 +121,14 @@ export default function AdminPanel() {
 	});
 
 	// send a delete request to the backend and close the popup on success
-	async function deleteEvent(eventId: number) {
-		const result = await apiCall("DELETE", "event", { id: eventId });
+	async function sendDeleteEvent() {
+		if (deleteEvent !== undefined) {
+			const result = await apiCall("DELETE", "event", { id: deleteEvent.id });
 
-		if (result.ok) {
-			// store the received events
-			events.reload();
-
-			setShowDeleteConfirm(false);
+			if (result.ok) {
+				// store the received events
+				events.reload();
+			}
 		}
 	}
 
@@ -141,12 +147,20 @@ export default function AdminPanel() {
 					</LocalDate>
 				);
 			case "description":
-				return <span className="whitespace-pre-wrap italic">{event[key]}</span>;
+				return (
+					<div className="max-w-32 whitespace-pre-wrap italic">
+						{event[key]}
+					</div>
+				);
 			case "actions":
 				return (
 					<div className="flex justify-end">
 						<ButtonGroup isIconOnly variant="light" size="sm">
-							<Button>
+							<Button
+								onPress={() => {
+									setEditEvent(event);
+								}}
+							>
 								<Tooltip content="Edit event">
 									<Edit />
 								</Tooltip>
@@ -159,8 +173,7 @@ export default function AdminPanel() {
 							<Button
 								color="danger"
 								onPress={() => {
-									setActiveEvent(event);
-									setShowDeleteConfirm(true);
+									setDeleteEvent(event);
 								}}
 							>
 								<Tooltip content="Delete event">
@@ -203,33 +216,6 @@ export default function AdminPanel() {
 								)}
 							</DropdownMenu>
 						</Dropdown>
-						// <Select
-						// 	aria-label={`User selection for task ${key} and event ${event.date}`}
-						// 	variant="underlined"
-						// 	fullWidth
-						// 	selectedKeys={new Set([event.tasks[key as string] ?? ""])}
-						// 	classNames={{
-						// 		popoverContent: "w-fit",
-						// 		value: "mr-6",
-						// 		label: "mr-6",
-						// 	}}
-						// 	className="[&_*]:overflow-visible"
-						// >
-						// 	{Object.entries(event.availabilities).map(
-						// 		([volunteer, availability]) => (
-						// 			<SelectItem
-						// 				key={volunteer}
-						// 				// color={availability2Color(availability)}
-						// 				className={[
-						// 					// "text-" + availability2Color(availability),
-						// 					// availability2Tailwind(availability),
-						// 				].join(" ")}
-						// 			>
-						// 				{volunteer} ({availability})
-						// 			</SelectItem>
-						// 		),
-						// 	)}
-						// </Select>
 					);
 				} else {
 					return <NotAvailable className="mx-auto text-foreground-300" />;
@@ -237,9 +223,16 @@ export default function AdminPanel() {
 		}
 	}
 
-	const [showAddEvent, setShowAddEvent] = useState(false);
-	const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-	const [activeEvent, setActiveEvent] = useState<EventData | undefined>();
+	async function updateEvent(data: EventSubmitData) {
+		const result = await apiCall("PATCH", "events", undefined, data);
+
+		if (result.ok) {
+			// clear the selected-event to hide the modal
+			setEditEvent(undefined);
+
+			events.reload();
+		}
+	}
 
 	const topContent = (
 		<div>
@@ -271,7 +264,7 @@ export default function AdminPanel() {
 					th: "font-subheadline text-xl text-accent-1 bg-transparent ",
 					thead: "[&>tr]:first:!shadow-border",
 				}}
-				className="w-fit"
+				className="w-fit max-w-full"
 			>
 				<TableHeader columns={headers.items}>
 					{(task) => (
@@ -301,45 +294,62 @@ export default function AdminPanel() {
 				onSuccess={() => events.reload()}
 			/>
 
-			{activeEvent !== undefined ? (
-				<Modal
-					isOpen={showDeleteConfirm}
-					onOpenChange={setShowDeleteConfirm}
-					shadow={"none" as "sm"}
-					backdrop="blur"
-					className="bg-accent-5"
-				>
-					<ModalContent>
-						<ModalHeader>
-							<h1 className="text-2xl">Confirm event deletion</h1>
-						</ModalHeader>
-						<ModalBody>
-							The event{" "}
-							<span className="font-numbers text-accent-1">
-								<LocalDate options={{ dateStyle: "long", timeStyle: "short" }}>
-									{activeEvent.date}
-								</LocalDate>
-							</span>{" "}
-							will be deleted.
-						</ModalBody>
-						<ModalFooter>
-							<Button
-								startContent={<TrashCan />}
-								color="danger"
-								onPress={() => deleteEvent(activeEvent.id)}
-							>
-								Delete event
-							</Button>
-							<Button
-								variant="bordered"
-								onPress={() => setShowDeleteConfirm(false)}
-							>
-								Cancel
-							</Button>
-						</ModalFooter>
-					</ModalContent>
-				</Modal>
-			) : null}
+			<EditEvent
+				isOpen={editEvent !== undefined}
+				onOpenChange={(isOpen) => (!isOpen ? setEditEvent(undefined) : null)}
+				onSubmit={updateEvent}
+				initialState={editEvent}
+				footer={
+					<Button
+						color="primary"
+						radius="full"
+						startContent={<Renew />}
+						type="submit"
+					>
+						Update
+					</Button>
+				}
+			>
+				Edit Event
+			</EditEvent>
+
+			<Modal
+				isOpen={!!deleteEvent}
+				onOpenChange={(isOpen) => (!isOpen ? setDeleteEvent(undefined) : null)}
+				shadow={"none" as "sm"}
+				backdrop="blur"
+				className="bg-accent-5"
+			>
+				<ModalContent>
+					<ModalHeader>
+						<h1 className="text-2xl">Confirm event deletion</h1>
+					</ModalHeader>
+					<ModalBody>
+						The event{" "}
+						<span className="font-numbers text-accent-1">
+							<LocalDate options={{ dateStyle: "long", timeStyle: "short" }}>
+								{deleteEvent?.date}
+							</LocalDate>
+						</span>{" "}
+						will be deleted.
+					</ModalBody>
+					<ModalFooter>
+						<Button
+							variant="bordered"
+							onPress={() => setDeleteEvent(undefined)}
+						>
+							Cancel
+						</Button>
+						<Button
+							startContent={<TrashCan />}
+							color="danger"
+							onPress={() => sendDeleteEvent()}
+						>
+							Delete event
+						</Button>
+					</ModalFooter>
+				</ModalContent>
+			</Modal>
 		</div>
 	);
 }
