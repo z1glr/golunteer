@@ -3,7 +3,7 @@
 import { usePathname } from "next/navigation";
 import React from "react";
 import { SiteLink } from "./layout";
-import { Divider, Link } from "@nextui-org/react";
+import { Divider, Link } from "@heroui/react";
 
 export default function Footer({ sites }: { sites: SiteLink[] }) {
 	const pathname = usePathname();

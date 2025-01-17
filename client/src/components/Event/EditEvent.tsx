@@ -18,7 +18,7 @@ import {
 	ModalHeader,
 	Spinner,
 	Textarea,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { getTasks, Task } from "@/lib";
 import { EventData } from "@/Zustand";
 

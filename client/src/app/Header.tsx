@@ -18,7 +18,7 @@ import {
 	NavbarMenuToggle,
 	Tab,
 	Tabs,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import zustand from "@/Zustand";
 import { SiteLink } from "./layout";
 import React, { useEffect, useState } from "react";

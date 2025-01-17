@@ -5,7 +5,7 @@ import Event from "@/components/Event/Event";
 import { apiCall } from "@/lib";
 import zustand, { EventData } from "@/Zustand";
 import { Add } from "@carbon/icons-react";
-import { Button } from "@nextui-org/react";
+import { Button } from "@heroui/react";
 import { useEffect, useState } from "react";
 
 export default function Events() {

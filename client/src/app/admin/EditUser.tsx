@@ -14,7 +14,7 @@ import {
 	ModalContent,
 	ModalFooter,
 	ModalHeader,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { FormEvent, useEffect, useState } from "react";
 
 export default function EditUser(props: {

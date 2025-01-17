@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { NextUIProvider } from "@nextui-org/system";
+import { HeroUIProvider } from "@heroui/system";
 import React from "react";
 import Footer from "./Footer";
 import Header from "./Header";
@@ -57,7 +57,7 @@ export default function RootLayout({
 	return (
 		<html>
 			<body className="bg-background text-foreground antialiased">
-				<NextUIProvider>
+				<HeroUIProvider>
 					<div className="flex min-h-screen flex-col p-4">
 						<header>
 							<Header sites={headerSites} />
@@ -69,7 +69,7 @@ export default function RootLayout({
 							<Footer sites={footerSites} />
 						</footer>
 					</div>
-				</NextUIProvider>
+				</HeroUIProvider>
 			</body>
 		</html>
 	);

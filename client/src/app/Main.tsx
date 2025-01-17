@@ -2,7 +2,7 @@
 
 import { apiCall } from "@/lib";
 import zustand from "@/Zustand";
-import { Spinner } from "@nextui-org/react";
+import { Spinner } from "@heroui/react";
 import { usePathname, useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 

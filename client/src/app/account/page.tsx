@@ -9,7 +9,7 @@ import {
 	CardHeader,
 	Form,
 	Input,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { FormEvent, useState } from "react";
 
 export default function Account() {

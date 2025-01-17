@@ -3,7 +3,7 @@
 import { Add } from "@carbon/icons-react";
 import { useState } from "react";
 import AddEvent from "../components/Event/AddEvent";
-import { Button } from "@nextui-org/react";
+import { Button } from "@heroui/react";
 
 export default function EventVolunteer() {
 	const [showAddItemDialogue, setShowAddItemDialogue] = useState(false);

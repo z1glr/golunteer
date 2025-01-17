@@ -2,7 +2,7 @@
 
 import LocalDate from "../LocalDate";
 import { EventData } from "@/Zustand";
-import { Card, CardBody, CardHeader, Divider } from "@nextui-org/react";
+import { Card, CardBody, CardHeader, Divider } from "@heroui/react";
 import React from "react";
 
 export default function Event({

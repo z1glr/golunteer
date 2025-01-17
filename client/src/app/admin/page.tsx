@@ -1,7 +1,8 @@
 "use client";
 
-import { Tab, Tabs } from "@nextui-org/react";
+import { Tab, Tabs } from "@heroui/react";
 import Users from "./Users";
+import Availabilities from "./Availabilities";
 
 export default function AdminDashboard() {
 	return (
@@ -11,7 +12,7 @@ export default function AdminDashboard() {
 					<Users />
 				</Tab>
 				<Tab title="Tasks">Tasks</Tab>
-				<Tab title="Availabilities">Availabilities</Tab>
+				<Tab title="Availabilities"><Availabilities /></Tab>
 			</Tabs>
 		</div>
 	);

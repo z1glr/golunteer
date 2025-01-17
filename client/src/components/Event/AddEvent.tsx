@@ -1,4 +1,4 @@
-import { Button } from "@nextui-org/react";
+import { Button } from "@heroui/react";
 import EditEvent, { EventSubmitData } from "./EditEvent";
 import { apiCall } from "@/lib";
 import { AddLarge } from "@carbon/icons-react";

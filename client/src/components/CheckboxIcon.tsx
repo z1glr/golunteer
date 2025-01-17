@@ -1,4 +1,4 @@
-import { SwitchProps, useSwitch, VisuallyHidden } from "@nextui-org/react";
+import { SwitchProps, useSwitch, VisuallyHidden } from "@heroui/react";
 import React from "react";
 
 export default function CheckboxIcon(props: SwitchProps) {

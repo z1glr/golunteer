@@ -8,7 +8,7 @@ import {
 	ViewOffFilled,
 	WarningHexFilled,
 } from "@carbon/icons-react";
-import { Alert, Button, Form, Input } from "@nextui-org/react";
+import { Alert, Button, Form, Input } from "@heroui/react";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
 
