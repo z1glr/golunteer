@@ -1,3 +1,4 @@
 config.yaml
 logs
 __debug_bin*
+database.db

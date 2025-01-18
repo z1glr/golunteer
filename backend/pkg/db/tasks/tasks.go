@@ -9,14 +9,14 @@ import (
 )
 
 type tasksDB struct {
-	ID       int    `db:"id"`
-	Text     string `db:"text"`
-	Disabled bool   `db:"disabled"`
+	ID      int    `db:"id"`
+	Text    string `db:"text"`
+	Enabled bool   `db:"enabled"`
 }
 
 type Task struct {
-	Text     string `json:"text"`
-	Disabled bool   `json:"disabled"`
+	Text    string `json:"text"`
+	Enabled bool   `json:"enabled"`
 }
 
 var c *cache.Cache
@@ -41,8 +41,8 @@ func refresh() {
 
 		for _, a := range tasksRaw {
 			tasks[a.ID] = Task{
-				Text:     a.Text,
-				Disabled: a.Disabled,
+				Text:    a.Text,
+				Enabled: a.Enabled,
 			}
 		}
 

@@ -118,7 +118,7 @@ export default function Users() {
 									size="sm"
 									onPress={() => setEditUser(user)}
 								>
-									<Tooltip content="Edit event">
+									<Tooltip content="Edit user">
 										<Edit />
 									</Tooltip>
 								</Button>

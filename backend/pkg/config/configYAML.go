@@ -13,13 +13,8 @@ var CONFIG_PATH = "config.yaml"
 
 type ConfigYaml struct {
 	LogLevel string `yaml:"log_level"`
-	Database struct {
-		Host     string `yaml:"host"`
-		User     string `yaml:"user"`
-		Password string `yaml:"password"`
-		Database string `yaml:"database"`
-	} `yaml:"database"`
-	Server struct {
+	Database string `yaml:"database"`
+	Server   struct {
 		Port int `yaml:"port"`
 	} `yaml:"server"`
 	ClientSession struct {

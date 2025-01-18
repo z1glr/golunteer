@@ -81,14 +81,17 @@ func init() {
 			"events/user/pending":   getEventsUserPending,
 			"tasks":                 getTasks,
 			"users":                 getUsers,
+			"availabilities":        getAvailabilities,
 		},
 		"POST": {
-			"events": postEvent,
-			"users":  postUser,
+			"events":         postEvent,
+			"users":          postUser,
+			"availabilities": postAvailabilitie,
 		},
 		"PATCH": {
-			"users":  patchUser,
-			"events": patchEvent,
+			"users":          patchUser,
+			"events":         patchEvent,
+			"availabilities": patchAvailabilities,
 		},
 		"PUT": {
 			"users/password": putPassword,

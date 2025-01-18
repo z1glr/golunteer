@@ -67,23 +67,23 @@ export default function EditUser(props: {
 
 	return (
 		<Modal isOpen={props.isOpen} onOpenChange={props.onOpenChange}>
-			{props.user !== undefined ? (
-				<ModalContent>
-					<ModalHeader>
-						<h1 className="text-2xl">
-							Edit User{" "}
-							<span className="font-numbers font-normal italic">
-								{props.user.userName}
-							</span>
-						</h1>
-					</ModalHeader>
-					<Form
-						validationBehavior="native"
-						onSubmit={(e) => {
-							e.preventDefault();
-							updateUser(e);
-						}}
-					>
+			<Form
+				validationBehavior="native"
+				onSubmit={(e) => {
+					e.preventDefault();
+					updateUser(e);
+				}}
+			>
+				{props.user !== undefined ? (
+					<ModalContent>
+						<ModalHeader>
+							<h1 className="text-2xl">
+								Edit User{" "}
+								<span className="font-numbers font-normal italic">
+									{props.user.userName}
+								</span>
+							</h1>
+						</ModalHeader>
 						<ModalBody className="w-full">
 							<Input
 								label="Name"
@@ -129,9 +129,9 @@ export default function EditUser(props: {
 								Update
 							</Button>
 						</ModalFooter>
-					</Form>
-				</ModalContent>
-			) : null}
+					</ModalContent>
+				) : null}
+			</Form>
 		</Modal>
 	);
 }

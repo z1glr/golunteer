@@ -1,59 +1,58 @@
 package availabilities
 
 import (
-	"fmt"
-	"time"
-
-	cache "github.com/jfarleyx/go-simple-cache"
 	"github.com/johannesbuehl/golunteer/backend/pkg/db"
 )
 
-type availabilitiesDB struct {
-	Id       int    `db:"id"`
-	Text     string `db:"text"`
-	Disabled bool   `db:"disabled"`
+type AvailabilityDB struct {
+	Id int `db:"id" json:"id" validate:"required"`
+	Availability
 }
 
 type Availability struct {
-	Text     string
-	Disabled bool
+	Text    string `db:"text" json:"text" validate:"required"`
+	Enabled bool   `db:"enabled" json:"enabled" validate:"required"`
+	Color   string `db:"color" json:"color" validate:"required"`
 }
 
-var c *cache.Cache
+func Add(a Availability) error {
+	_, err := db.DB.NamedExec("INSERT INTO AVAILABILITIES (text, color, enabled) VALUES (:text, :color, :enabled)", a)
 
-func Keys() (map[int]Availability, error) {
-	if availabilities, hit := c.Get("availabilities"); !hit {
-		refresh()
+	return err
+}
 
-		return nil, fmt.Errorf("availabilities not stored cached")
+func Update(a AvailabilityDB) error {
+	_, err := db.DB.NamedExec("UPDATE AVAILABILITIES SET text = :text, color = :color, enabled = :enabled WHERE id = :id", a)
+
+	return err
+}
+
+func Slice() ([]AvailabilityDB, error) {
+	// get the availabilitiesRaw from the database
+	var availabilitiesRaw []AvailabilityDB
+
+	if err := db.DB.Select(&availabilitiesRaw, "SELECT * FROM AVAILABILITIES"); err != nil {
+		return nil, err
 	} else {
-		return availabilities.(map[int]Availability), nil
+		return availabilitiesRaw, nil
 	}
 }
 
-func refresh() {
-	// get the availabilitiesRaw from the database
-	var availabilitiesRaw []availabilitiesDB
-
-	if err := db.DB.Select(&availabilitiesRaw, "SELECT * FROM AVAILABILITIES"); err == nil {
+func Keys() (map[int]Availability, error) {
+	if availabilitiesRaw, err := Slice(); err != nil {
+		return nil, err
+	} else {
 		// convert the result in a map
 		availabilities := map[int]Availability{}
 
 		for _, a := range availabilitiesRaw {
 			availabilities[a.Id] = Availability{
-				Text:     a.Text,
-				Disabled: a.Disabled,
+				Text:    a.Text,
+				Enabled: a.Enabled,
+				Color:   a.Color,
 			}
 		}
 
-		c.Set("availabilities", availabilities)
+		return availabilities, nil
 	}
-}
-
-func init() {
-	c = cache.New(24 * time.Hour)
-
-	c.OnExpired(refresh)
-
-	refresh()
 }

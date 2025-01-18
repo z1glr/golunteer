@@ -18,33 +18,28 @@ export default function Main({ children }: { children: React.ReactNode }) {
 
 	const router = useRouter();
 	const pathname = usePathname();
-	const user = zustand((state) => state.user);
 
 	useEffect(() => {
 		void (async () => {
 			let loggedIn = false;
 
-			if (zustand.getState().user === null) {
-				const welcomeResult = await apiCall<{
-					userName: string;
-					loggedIn: boolean;
-				}>("GET", "welcome");
+			const welcomeResult = await apiCall<{
+				userName: string;
+				loggedIn: boolean;
+			}>("GET", "welcome");
 
-				if (welcomeResult.ok) {
-					try {
-						const response = await welcomeResult.json();
+			if (welcomeResult.ok) {
+				try {
+					const response = await welcomeResult.json();
 
-						if (response.userName !== undefined && response.userName !== "") {
-							zustand.getState().reset({ user: response });
+					if (response.userName !== undefined && response.userName !== "") {
+						zustand.getState().reset({ user: response });
 
-							loggedIn = true;
-						}
-					} catch {}
-				} else {
-					zustand.getState().reset();
-				}
+						loggedIn = true;
+					}
+				} catch {}
 			} else {
-				loggedIn = true;
+				zustand.getState().reset();
 			}
 
 			if (pathname === "/login") {
@@ -62,7 +57,7 @@ export default function Main({ children }: { children: React.ReactNode }) {
 				}
 			}
 		})();
-	}, [pathname, router, user]);
+	}, [pathname, router]);
 
 	switch (auth) {
 		case AuthState.Loading:

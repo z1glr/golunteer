@@ -40,26 +40,6 @@ import React, { Key, useState } from "react";
 
 type EventWithAvailabilities = EventData & { availabilities: string[] };
 
-function availability2Tailwind(availability?: Availability) {
-	switch (availability) {
-		case "yes":
-			return "";
-		default:
-			return "italic";
-	}
-}
-
-function availability2Color(availability?: Availability) {
-	switch (availability) {
-		case "yes":
-			return "default";
-		case "maybe":
-			return "warning";
-		default:
-			return "danger";
-	}
-}
-
 export default function AdminPanel() {
 	const [showAddEvent, setShowAddEvent] = useState(false);
 	const [editEvent, setEditEvent] = useState<EventData | undefined>();
@@ -75,7 +55,7 @@ export default function AdminPanel() {
 					{ key: "date", label: "Date" },
 					{ key: "description", label: "Description" },
 					...Object.values(tasks)
-						.filter((task) => !task.disabled)
+						.filter((task) => task.enabled)
 						.map((task) => ({ label: task.text, key: task.text })),
 					{ key: "actions", label: "Action" },
 				],

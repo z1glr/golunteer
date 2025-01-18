@@ -183,7 +183,7 @@ export default function EditEvent(props: {
 						>
 							{tasksMap !== undefined ? (
 								Object.entries(tasksMap)
-									.filter(([, task]) => !task.disabled)
+									.filter(([, task]) => task.enabled)
 									.map(([id, task]) => (
 										<div key={id}>
 											<Checkbox value={id}>{task.text}</Checkbox>

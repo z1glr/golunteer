@@ -50,10 +50,10 @@ func (config ConfigStruct) SignJWT(val any) (string, error) {
 	return t.SignedString([]byte(config.ClientSession.JwtSignature))
 }
 
-func loadConfig() ConfigStruct {
+func LoadConfig() ConfigStruct {
 	Config := ConfigYaml{}
 
-	yamlFile, err := os.ReadFile("config.yaml")
+	yamlFile, err := os.ReadFile(CONFIG_PATH)
 	if err != nil {
 		panic(fmt.Sprintf("Error opening config-file: %q", err))
 	}
@@ -91,5 +91,5 @@ func loadConfig() ConfigStruct {
 }
 
 func init() {
-	Config = loadConfig()
+	Config = LoadConfig()
 }
