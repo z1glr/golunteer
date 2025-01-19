@@ -1,6 +1,6 @@
 import { color2Tailwind, colors } from "@/components/Colorselector";
 import { apiCall } from "@/lib";
-import { Edit } from "@carbon/icons-react";
+import { AddLarge, Edit } from "@carbon/icons-react";
 import {
 	Button,
 	Checkbox,
@@ -78,7 +78,11 @@ export default function Availabilities() {
 
 	const topContent = (
 		<>
-			<Button onPress={() => setShowAddAvailability(true)}>
+			<Button
+				color="primary"
+				startContent={<AddLarge />}
+				onPress={() => setShowAddAvailability(true)}
+			>
 				Add Availability
 			</Button>
 		</>
@@ -90,6 +94,7 @@ export default function Availabilities() {
 				aria-label="Table with the availabilites"
 				shadow="none"
 				isHeaderSticky
+				isStriped
 				topContent={topContent}
 				sortDescriptor={availabilities.sortDescriptor}
 				onSortChange={availabilities.sort}

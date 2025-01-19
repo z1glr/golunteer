@@ -3,7 +3,7 @@
 import AddEvent from "@/components/Event/AddEvent";
 import EditEvent, { EventSubmitData } from "@/components/Event/EditEvent";
 import LocalDate from "@/components/LocalDate";
-import { apiCall, getTasks } from "@/lib";
+import { apiCall, getTaskMap } from "@/lib";
 import { EventData } from "@/Zustand";
 import {
 	Add,
@@ -48,7 +48,7 @@ export default function AdminPanel() {
 	// get the available tasks and craft them into the headers
 	const headers = useAsyncList({
 		async load() {
-			const tasks = await getTasks();
+			const tasks = await getTaskMap();
 
 			return {
 				items: [

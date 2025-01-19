@@ -19,7 +19,7 @@ import {
 	Spinner,
 	Textarea,
 } from "@heroui/react";
-import { getTasks, Task } from "@/lib";
+import { getTaskMap, Task } from "@/lib";
 import { EventData } from "@/Zustand";
 
 export interface EventSubmitData {
@@ -103,7 +103,7 @@ export default function EditEvent(props: {
 	// get the available tasks and initialize the state with them
 	useEffect(() => {
 		(async () => {
-			const tasks = await getTasks();
+			const tasks = await getTaskMap();
 
 			setTasksMap(tasks);
 

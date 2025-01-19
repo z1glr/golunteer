@@ -1,16 +1,16 @@
-import { apiCall } from "@/lib";
-import AvailabilityEditor, { Availability } from "./AvailabilityEditor";
+import { apiCall, Task } from "@/lib";
 import { Button } from "@heroui/react";
 import { Renew } from "@carbon/icons-react";
+import TaskEditor from "./TaskEditor";
 
-export default function EditAvailability(props: {
-	value: Availability | undefined;
+export default function EditTask(props: {
+	value: Task | undefined;
 	isOpen?: boolean;
 	onOpenChange?: (isOpen: boolean) => void;
 	onSuccess?: () => void;
 }) {
-	async function addAvailability(a: Availability) {
-		const result = await apiCall("PATCH", "availabilities", undefined, a);
+	async function updateTask(t: Task) {
+		const result = await apiCall("PATCH", "tasks", undefined, t);
 
 		if (result.ok) {
 			props.onSuccess?.();
@@ -19,9 +19,16 @@ export default function EditAvailability(props: {
 	}
 
 	return (
-		<AvailabilityEditor
+		<TaskEditor
 			key={props.value?.id}
-			header="Edit Availability"
+			header={
+				<>
+					Edit Task{" "}
+					<span className="font-numbers font-normal italic">
+						&quot;{props.value?.text}&quot;
+					</span>
+				</>
+			}
 			footer={
 				<Button type="submit" color="primary" startContent={<Renew />}>
 					Update
@@ -30,7 +37,7 @@ export default function EditAvailability(props: {
 			value={props.value}
 			isOpen={props.isOpen}
 			onOpenChange={props.onOpenChange}
-			onSubmit={addAvailability}
+			onSubmit={updateTask}
 		/>
 	);
 }

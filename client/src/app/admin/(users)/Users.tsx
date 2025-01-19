@@ -14,7 +14,7 @@ import {
 import { useAsyncList } from "@react-stately/data";
 import { FormEvent, useState } from "react";
 import AddUser from "./AddUser";
-import { Edit } from "@carbon/icons-react";
+import { AddLarge, Edit } from "@carbon/icons-react";
 import EditUser from "./EditUser";
 
 export default function Users() {
@@ -81,7 +81,13 @@ export default function Users() {
 	// content above the user-tabel
 	const topContent = (
 		<>
-			<Button onPress={() => setShowAddUser(true)}>Add User</Button>
+			<Button
+				color="primary"
+				startContent={<AddLarge />}
+				onPress={() => setShowAddUser(true)}
+			>
+				Add User
+			</Button>
 		</>
 	);
 
@@ -91,6 +97,7 @@ export default function Users() {
 				aria-label="Table with all users"
 				shadow="none"
 				isHeaderSticky
+				isStriped
 				topContent={topContent}
 				sortDescriptor={users.sortDescriptor}
 				onSortChange={users.sort}

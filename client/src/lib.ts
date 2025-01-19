@@ -94,12 +94,13 @@ export function vaidatePassword(password: string): string[] {
 }
 
 export interface Task {
+	id: number | undefined;
 	text: string;
 	enabled: boolean;
 }
 
-export async function getTasks(): Promise<Record<number, Task>> {
-	const result = await apiCall<Task[]>("GET", "tasks");
+export async function getTaskMap(): Promise<Record<number, Task>> {
+	const result = await apiCall<Task[]>("GET", "tasks", { map: true });
 
 	if (result.ok) {
 		const tasks = await result.json();

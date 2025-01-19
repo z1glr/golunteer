@@ -1,41 +1,34 @@
 package tasks
 
 import (
-	"fmt"
-	"time"
-
-	cache "github.com/jfarleyx/go-simple-cache"
 	"github.com/johannesbuehl/golunteer/backend/pkg/db"
 )
 
-type tasksDB struct {
-	ID      int    `db:"id"`
-	Text    string `db:"text"`
-	Enabled bool   `db:"enabled"`
+type TaskDB struct {
+	ID int `json:"id" db:"id"`
+	Task
 }
 
 type Task struct {
-	Text    string `json:"text"`
-	Enabled bool   `json:"enabled"`
+	Text    string `json:"text" db:"text"`
+	Enabled bool   `json:"enabled" db:"enabled"`
 }
 
-var c *cache.Cache
+func GetSlice() ([]TaskDB, error) {
+	var tasksRaw []TaskDB
 
-func Get() (map[int]Task, error) {
-	if tasks, hit := c.Get("tasks"); !hit {
-		refresh()
-
-		return nil, fmt.Errorf("tasks not stored cached")
+	if err := db.DB.Select(&tasksRaw, "SELECT * FROM TASKS"); err != nil {
+		return nil, err
 	} else {
-		return tasks.(map[int]Task), nil
+		return tasksRaw, nil
 	}
+
 }
 
-func refresh() {
-	// get the tasksRaw from the database
-	var tasksRaw []tasksDB
-
-	if err := db.DB.Select(&tasksRaw, "SELECT * FROM TASKS"); err == nil {
+func GetMap() (map[int]Task, error) {
+	if tasksRaw, err := GetSlice(); err != nil {
+		return nil, err
+	} else {
 		// convert the result in a map
 		tasks := map[int]Task{}
 
@@ -46,14 +39,18 @@ func refresh() {
 			}
 		}
 
-		c.Set("tasks", tasks)
+		return tasks, nil
 	}
 }
 
-func init() {
-	c = cache.New(24 * time.Hour)
+func Add(t Task) error {
+	_, err := db.DB.NamedExec("INSERT INTO TASKS (text, enabled) VALUES (:text, :enabled)", &t)
 
-	c.OnExpired(refresh)
+	return err
+}
 
-	refresh()
+func Update(t TaskDB) error {
+	_, err := db.DB.NamedExec("UPDATE TASKS set text = :text, enabled = :enabled WHERE id = :id", &t)
+
+	return err
 }
