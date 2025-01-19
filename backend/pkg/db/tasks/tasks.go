@@ -5,13 +5,13 @@ import (
 )
 
 type TaskDB struct {
-	ID int `json:"id" db:"id"`
-	Task
+	ID   int `json:"id" db:"id" validate:"required"`
+	Task `valdate:"required" `
 }
 
 type Task struct {
-	Text    string `json:"text" db:"text"`
-	Enabled bool   `json:"enabled" db:"enabled"`
+	Text    string `json:"text" db:"text" validate:"required"`
+	Enabled bool   `json:"enabled" db:"enabled" validate:"required"`
 }
 
 func GetSlice() ([]TaskDB, error) {

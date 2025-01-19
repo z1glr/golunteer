@@ -5,8 +5,8 @@ import (
 )
 
 type AvailabilityDB struct {
-	Id int `db:"id" json:"id" validate:"required"`
-	Availability
+	Id           int `db:"id" json:"id" validate:"required"`
+	Availability `validate:"required"`
 }
 
 type Availability struct {
