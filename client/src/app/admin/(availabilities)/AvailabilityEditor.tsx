@@ -26,7 +26,7 @@ export default function AvailabilityEditor(props: {
 	onOpenChange?: (isOpen: boolean) => void;
 	onSubmit?: (e: Availability) => void;
 }) {
-	const [text, setText] = useState(props.value?.text);
+	const [text, setText] = useState(props.value?.text ?? "");
 	const [color, setColor] = useState(props.value?.color ?? "Red");
 	const [enabled, setEnabled] = useState(props.value?.enabled ?? true);
 

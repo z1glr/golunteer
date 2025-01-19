@@ -19,7 +19,7 @@ export default function TaskEditor(props: {
 	onOpenChange?: (isOpen: boolean) => void;
 	onSubmit?: (e: Task) => void;
 }) {
-	const [text, setText] = useState(props.value?.text);
+	const [text, setText] = useState(props.value?.text ?? "");
 	const [enabled, setEnabled] = useState(props.value?.enabled ?? true);
 
 	function submit(e: FormEvent<HTMLFormElement>) {
