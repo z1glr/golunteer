@@ -238,14 +238,15 @@ export default function AdminPanel() {
 				topContent={topContent}
 				topContentPlacement="outside"
 				isHeaderSticky
+				isStriped
 				sortDescriptor={events.sortDescriptor}
-				onSortChange={events.sort}
 				classNames={{
 					wrapper: "bg-accent-4",
 					tr: "even:bg-accent-5 ",
 					th: "font-subheadline text-xl text-accent-1 bg-transparent ",
 					thead: "[&>tr]:first:!shadow-border",
 				}}
+				onSortChange={events.sort}
 				className="w-fit max-w-full"
 			>
 				<TableHeader columns={headers.items}>

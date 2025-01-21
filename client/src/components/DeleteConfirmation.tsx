@@ -13,7 +13,7 @@ export default function DeleteConfirmation(props: {
 	isOpen: boolean;
 	onOpenChange: (isOpen: boolean) => void;
 	children: React.ReactNode;
-	header: React.ReactNode;
+	itemName: string;
 	onDelete?: () => void;
 }) {
 	return (
@@ -28,7 +28,7 @@ export default function DeleteConfirmation(props: {
 		>
 			<ModalContent>
 				<ModalHeader>
-					<h1 className="text-2xl">{props.header}</h1>
+					<h1 className="text-2xl">Delete {props.itemName}</h1>
 				</ModalHeader>
 				<ModalBody>{props.children}</ModalBody>
 				<ModalFooter>
@@ -40,7 +40,7 @@ export default function DeleteConfirmation(props: {
 						color="danger"
 						onPress={() => props.onDelete?.()}
 					>
-						Delete event
+						Delete {props.itemName}
 					</Button>
 				</ModalFooter>
 			</ModalContent>

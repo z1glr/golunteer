@@ -91,7 +91,7 @@ export default function Availabilities() {
 	}
 
 	const topContent = (
-		<>
+		<div>
 			<Button
 				color="primary"
 				startContent={<AddLarge />}
@@ -99,7 +99,7 @@ export default function Availabilities() {
 			>
 				Add Availability
 			</Button>
-		</>
+		</div>
 	);
 
 	return (
@@ -112,6 +112,13 @@ export default function Availabilities() {
 				topContent={topContent}
 				sortDescriptor={availabilities.sortDescriptor}
 				onSortChange={availabilities.sort}
+				topContentPlacement="outside"
+				classNames={{
+					wrapper: "bg-accent-4",
+					tr: "even:bg-accent-5 ",
+					th: "font-subheadline text-xl text-accent-1 bg-transparent ",
+					thead: "[&>tr]:first:!shadow-border",
+				}}
 			>
 				<TableHeader>
 					<TableColumn allowsSorting key="userName">
@@ -182,7 +189,7 @@ export default function Availabilities() {
 				onOpenChange={(isOpen) =>
 					!isOpen ? setDeleteAvailability(undefined) : null
 				}
-				header="Delete Availability"
+				itemName="Availability"
 				onDelete={() => sendDeleteAvailability(deleteAvailability?.id)}
 			>
 				{!!deleteAvailability ? (

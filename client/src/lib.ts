@@ -83,7 +83,7 @@ export class DateFormatter {
 	}
 }
 
-export function vaidatePassword(password: string): string[] {
+export function validatePassword(password: string): string[] {
 	const errors = [];
 
 	if (password.length < 12) {

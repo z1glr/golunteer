@@ -58,6 +58,9 @@ export default function AvailabilityEditor(props: {
 			isOpen={props.isOpen}
 			onOpenChange={props.onOpenChange}
 			shadow={"none" as "sm"}
+			classNames={{
+				base: "bg-accent-5",
+			}}
 		>
 			<Form
 				validationBehavior="native"
@@ -65,7 +68,6 @@ export default function AvailabilityEditor(props: {
 					e.preventDefault();
 					submit(e);
 				}}
-				className="w-fit border-2"
 			>
 				<ModalContent>
 					<ModalHeader>
@@ -81,6 +83,7 @@ export default function AvailabilityEditor(props: {
 							variant="bordered"
 						/>
 						<ColorSelector
+							isRequired
 							value={color}
 							onValueChange={setColor}
 							name="color"

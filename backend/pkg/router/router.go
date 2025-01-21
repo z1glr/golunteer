@@ -102,6 +102,7 @@ func init() {
 			"event":          deleteEvent,
 			"tasks":          deleteTask,
 			"availabilities": deleteAvailability,
+			"users":          deleteUser,
 		},
 	}
 

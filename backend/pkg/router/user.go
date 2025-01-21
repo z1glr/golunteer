@@ -189,3 +189,48 @@ func patchUser(args HandlerArgs) responseMessage {
 
 	return response
 }
+
+func deleteUser(args HandlerArgs) responseMessage {
+	// check admin
+	if !args.User.Admin {
+		logger.Warn().Msg("user-deletion failed: user is no admin")
+
+		return responseMessage{
+			Status: fiber.StatusUnauthorized,
+		}
+
+		// get the username from the query
+	} else if userName := args.C.Query("userName"); userName == "" {
+		logger.Log().Msg("user-deletion failed: query is missing \"userName\"")
+
+		return responseMessage{
+			Status: fiber.StatusBadRequest,
+		}
+
+		// check wether the user tries to delete himself
+	} else if userName == args.User.UserName {
+		logger.Log().Msg("user-deletion failed: self-deletion is illegal")
+
+		return responseMessage{
+			Status: fiber.StatusBadRequest,
+		}
+
+		// check wether the user tries to delete the admin
+	} else if userName == "admin" {
+		logger.Log().Msg("user-deletion failed: admin-deletion is illegal")
+
+		return responseMessage{
+			Status: fiber.StatusBadRequest,
+		}
+
+		// delete the user
+	} else if err := users.Delete(userName); err != nil {
+		logger.Error().Msgf("user-deletion failed: user doesn't exist")
+
+		return responseMessage{
+			Status: fiber.StatusNotFound,
+		}
+	} else {
+		return responseMessage{}
+	}
+}

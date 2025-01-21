@@ -31,12 +31,14 @@ export function color2Tailwind(v: string): string | undefined {
 }
 
 export default function ColorSelector(props: {
+	isRequired?: boolean;
 	name?: string;
 	value?: string;
 	onValueChange?: (value: string) => void;
 }) {
 	return (
 		<RadioGroup
+			isRequired={props.isRequired}
 			value={props.value}
 			onValueChange={props.onValueChange}
 			classNames={{ wrapper: "grid grid-cols-4" }}

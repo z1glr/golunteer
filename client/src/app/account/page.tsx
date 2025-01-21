@@ -1,6 +1,6 @@
 "use client";
 
-import { apiCall, vaidatePassword as validatePassword } from "@/lib";
+import { apiCall, validatePassword as validatePassword } from "@/lib";
 import {
 	Button,
 	Card,

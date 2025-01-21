@@ -23,6 +23,10 @@ export interface User {
 	admin: boolean;
 }
 
+export type UserAddModify = User & {
+	password: string;
+};
+
 interface Zustand {
 	user: User | null;
 	tasks?: Task[];

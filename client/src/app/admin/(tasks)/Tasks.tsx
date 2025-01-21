@@ -88,7 +88,7 @@ export default function Tasks() {
 	}
 
 	const topContent = (
-		<>
+		<div>
 			<Button
 				color="primary"
 				startContent={<AddLarge />}
@@ -96,7 +96,7 @@ export default function Tasks() {
 			>
 				Add Task
 			</Button>
-		</>
+		</div>
 	);
 
 	return (
@@ -109,6 +109,13 @@ export default function Tasks() {
 				topContent={topContent}
 				sortDescriptor={tasks.sortDescriptor}
 				onSortChange={tasks.sort}
+				topContentPlacement="outside"
+				classNames={{
+					wrapper: "bg-accent-4",
+					tr: "even:bg-accent-5 ",
+					th: "font-subheadline text-xl text-accent-1 bg-transparent ",
+					thead: "[&>tr]:first:!shadow-border",
+				}}
 			>
 				<TableHeader>
 					<TableColumn allowsSorting key="userName">
@@ -173,7 +180,7 @@ export default function Tasks() {
 			<DeleteConfirmation
 				isOpen={!!deleteTask}
 				onOpenChange={(isOpen) => (!isOpen ? setDeleteTask(undefined) : null)}
-				header="Delete Task"
+				itemName="Task"
 				onDelete={() => sendDeleteTask(deleteTask?.id)}
 			>
 				{!!deleteTask ? (

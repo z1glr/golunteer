@@ -11,6 +11,11 @@ type User struct {
 	Admin bool   `db:"admin" json:"admin"`
 }
 
+type UserChangePassword struct {
+	UserName string `json:"userName" validate:"required" db:"userName"`
+	Password string `json:"password" validate:"required,min=12"`
+}
+
 // hashes a password
 func hashPassword(password string) ([]byte, error) {
 	return bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
@@ -64,11 +69,6 @@ func Add(user UserAdd) error {
 	}
 }
 
-type UserChangePassword struct {
-	UserName string `json:"userName" validate:"required" db:"userName"`
-	Password string `json:"password" validate:"required,min=12"`
-}
-
 func ChangePassword(user UserChangePassword) (string, error) {
 	// try to hash teh password
 	if hash, err := hashPassword(user.Password); err != nil {
@@ -100,6 +100,12 @@ func ChangeName(userName, newName string) error {
 
 func SetAdmin(userName string, admin bool) error {
 	_, err := db.DB.Exec("UPDATE USERS SET admin = ? WHERE name = ?", admin, userName)
+
+	return err
+}
+
+func Delete(userName string) error {
+	_, err := db.DB.Exec("DELETE FROM USERS WHERE name = $1", userName)
 
 	return err
 }

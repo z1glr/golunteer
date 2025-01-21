@@ -47,7 +47,11 @@ export default function TaskEditor(props: {
 		<Modal
 			isOpen={props.isOpen}
 			onOpenChange={props.onOpenChange}
-			shadow={"none" as "sm"}
+			shadow={"none"}
+			backdrop="blur"
+			classNames={{
+				base: "bg-accent-5",
+			}}
 		>
 			<Form
 				validationBehavior="native"
@@ -55,7 +59,6 @@ export default function TaskEditor(props: {
 					e.preventDefault();
 					submit(e);
 				}}
-				className="w-fit border-2"
 			>
 				<ModalContent>
 					<ModalHeader>
