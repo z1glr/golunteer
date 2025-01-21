@@ -1,4 +1,6 @@
 import { DateFormatter as IntlDateFormatter } from "@internationalized/date";
+import zustand from "./Zustand";
+import { Availability } from "./app/admin/(availabilities)/AvailabilityEditor";
 
 type QueryParams = Record<string, string | { toString(): string }>;
 
@@ -95,18 +97,55 @@ export function vaidatePassword(password: string): string[] {
 
 export interface Task {
 	id: number | undefined;
-	text: string;
+	name: string;
 	enabled: boolean;
 }
 
-export async function getTaskMap(): Promise<Record<number, Task>> {
-	const result = await apiCall<Task[]>("GET", "tasks", { map: true });
+export async function getTask(name: string): Promise<Task | undefined> {
+	// get the tasks
+	const tasks = await getTasks();
 
-	if (result.ok) {
-		const tasks = await result.json();
+	return tasks.find((t) => t.name === name);
+}
 
-		return tasks;
+export async function getTasks(): Promise<Task[]> {
+	// check wether it is cached in zustand
+	const state = zustand.getState();
+
+	if (!!state.tasks) {
+		return state.tasks;
 	} else {
-		return {};
+		const result = await apiCall<Task[]>("GET", "tasks");
+
+		if (result.ok) {
+			const tasks = (await result.json()) as Task[];
+
+			state.patch({ tasks: tasks });
+
+			return tasks;
+		} else {
+			return [];
+		}
+	}
+}
+
+export async function getAvailabilities(): Promise<Availability[]> {
+	// check wether it is cached in zustand
+	const state = zustand.getState();
+
+	if (!!state.availabilities) {
+		return state.availabilities;
+	} else {
+		const result = await apiCall<Task[]>("GET", "availabilities");
+
+		if (result.ok) {
+			const tasks = await result.json();
+
+			state.patch({ availabilities: tasks });
+
+			return tasks;
+		} else {
+			return [];
+		}
 	}
 }

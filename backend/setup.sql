@@ -1,19 +1,19 @@
 CREATE TABLE IF NOT EXISTS TASKS (
 	id INTEGER PRIMARY KEY,
-	text varchar(64) NOT NULL,
-	enabled BOOL DEFAULT(true)
+	name varchar(64) NOT NULL,
+	enabled BOOL DEFAULT 1
 );
 
 CREATE TABLE IF NOT EXISTS AVAILABILITIES (
 	id INTEGER PRIMARY KEY,
-	text varchar(32) NOT NULL,
+	name varchar(32) NOT NULL,
 	color varchar(7) NOT NULL,
-	enabled BOOL DEFAULT(true)
+	enabled BOOL DEFAULT 1
 );
 
 CREATE TABLE IF NOT EXISTS USERS (
 	name varchar(64) PRIMARY KEY,
-	password binary(60) NOT NULL,
+	password BLOB NOT NULL,
 	admin BOOL NOT NULL DEFAULT(false),
 	tokenID varchar(64) NOT NULL,
 	CHECK (length(password) = 60),

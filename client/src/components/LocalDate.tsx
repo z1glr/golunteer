@@ -1,7 +1,7 @@
 "use local";
 
 import { DateFormatter } from "@/lib";
-import { getLocalTimeZone, parseDateTime } from "@internationalized/date";
+import { parseAbsoluteToLocal } from "@internationalized/date";
 import { useLocale } from "@react-aria/i18n";
 
 export default function LocalDate(props: {
@@ -14,9 +14,7 @@ export default function LocalDate(props: {
 	return (
 		<span className={props.className}>
 			{props.children !== undefined
-				? formatter.format(
-						parseDateTime(props.children).toDate(getLocalTimeZone()),
-					)
+				? formatter.format(parseAbsoluteToLocal(props.children).toDate())
 				: ""}
 		</span>
 	);

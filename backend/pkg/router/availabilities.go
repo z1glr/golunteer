@@ -16,15 +16,13 @@ func getAvailabilities(args HandlerArgs) responseMessage {
 
 		return response
 	} else {
-		response.Data = struct {
-			Availabilities []availabilities.AvailabilityDB `json:"availabilities"`
-		}{Availabilities: avails}
+		response.Data = avails
 
 		return response
 	}
 }
 
-func postAvailabilitie(args HandlerArgs) responseMessage {
+func postAvailability(args HandlerArgs) responseMessage {
 	response := responseMessage{}
 
 	// check admin
@@ -65,7 +63,7 @@ func postAvailabilitie(args HandlerArgs) responseMessage {
 	}
 }
 
-func patchAvailabilities(args HandlerArgs) responseMessage {
+func patchAvailabilitiy(args HandlerArgs) responseMessage {
 	response := responseMessage{}
 
 	// check admin
@@ -103,5 +101,34 @@ func patchAvailabilities(args HandlerArgs) responseMessage {
 		} else {
 			return response
 		}
+	}
+}
+
+func deleteAvailability(args HandlerArgs) responseMessage {
+	// check admin
+	if !args.User.Admin {
+		logger.Warn().Msg("availability-deletion failed: user is no admin")
+
+		return responseMessage{
+			Status: fiber.StatusUnauthorized,
+		}
+
+		// parse the query
+	} else if taskID := args.C.QueryInt("id", -1); taskID == -1 {
+		logger.Log().Msg("availability-deletion failed: invalid query: doesn't include \"id\"")
+
+		return responseMessage{
+			Status: fiber.StatusBadRequest,
+		}
+
+		// delete the task from the database
+	} else if err := availabilities.Delete(taskID); err != nil {
+		logger.Error().Msgf("availability-deletion failed: can't delete task from database: %v", err)
+
+		return responseMessage{
+			Status: fiber.StatusInternalServerError,
+		}
+	} else {
+		return responseMessage{}
 	}
 }

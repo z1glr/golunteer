@@ -1,10 +1,10 @@
-import { color2Tailwind, colors } from "@/components/Colorselector";
-import { apiCall } from "@/lib";
-import { AddLarge, Edit } from "@carbon/icons-react";
+import { colors } from "@/components/Colorselector";
+import { apiCall, getAvailabilities } from "@/lib";
+import { AddLarge, Edit, TrashCan } from "@carbon/icons-react";
 import {
 	Button,
+	ButtonGroup,
 	Checkbox,
-	Chip,
 	Table,
 	TableBody,
 	TableCell,
@@ -18,26 +18,20 @@ import { useState } from "react";
 import AddAvailability from "./AddAvailability";
 import { Availability } from "./AvailabilityEditor";
 import EditAvailability from "./EditAvailability";
+import DeleteConfirmation from "@/components/DeleteConfirmation";
+import AvailabilityChip from "@/components/AvailabilityChip";
+import zustand from "@/Zustand";
 
 export default function Availabilities() {
 	const [showAddAvailability, setShowAddAvailability] = useState(false);
 	const [editAvailability, setEditAvailability] = useState<Availability>();
+	const [deleteAvailability, setDeleteAvailability] = useState<Availability>();
 
 	const availabilities = useAsyncList<Availability>({
 		async load() {
-			const result = await apiCall("GET", "availabilities");
-
-			if (result.ok) {
-				const json = await result.json();
-
-				return {
-					items: json.availabilities,
-				};
-			} else {
-				return {
-					items: [],
-				};
-			}
+			return {
+				items: await getAvailabilities(),
+			};
 		},
 		async sort({ items, sortDescriptor }) {
 			return {
@@ -46,7 +40,7 @@ export default function Availabilities() {
 
 					switch (sortDescriptor.column) {
 						case "text":
-							cmp = a.text.localeCompare(b.text);
+							cmp = a.name.localeCompare(b.name);
 							break;
 						case "enabled":
 							if (a.enabled && !b.enabled) {
@@ -76,6 +70,26 @@ export default function Availabilities() {
 		},
 	});
 
+	function reload() {
+		// clear the availabilites in the zustand
+		zustand.getState().patch({ availabilities: undefined });
+
+		// refresh the availabilites
+		availabilities.reload();
+	}
+
+	async function sendDeleteAvailability(id: number | undefined) {
+		if (id !== undefined) {
+			const result = await apiCall("DELETE", "availabilities", { id });
+
+			if (result.ok) {
+				reload();
+
+				setDeleteAvailability(undefined);
+			}
+		}
+	}
+
 	const topContent = (
 		<>
 			<Button
@@ -101,10 +115,7 @@ export default function Availabilities() {
 			>
 				<TableHeader>
 					<TableColumn allowsSorting key="userName">
-						Text
-					</TableColumn>
-					<TableColumn allowsSorting key="color" align="center">
-						Color
+						Name
 					</TableColumn>
 					<TableColumn allowsSorting key="admin" align="center">
 						Enabled
@@ -115,35 +126,36 @@ export default function Availabilities() {
 				</TableHeader>
 				<TableBody items={availabilities.items}>
 					{(availability) => (
-						<TableRow key={availability.text}>
-							<TableCell
-								className={`text-${color2Tailwind(availability.color)}`}
-							>
-								{availability.text}
-							</TableCell>
+						<TableRow key={availability.name}>
 							<TableCell>
-								<Chip
-									classNames={{
-										base: `bg-${color2Tailwind(availability.color)}`,
-									}}
-								>
-									{availability.color}
-								</Chip>
+								<AvailabilityChip availability={availability} />
 							</TableCell>
 							<TableCell>
 								<Checkbox isSelected={availability.enabled} />
 							</TableCell>
 							<TableCell>
-								<Button
-									isIconOnly
-									variant="light"
-									size="sm"
-									onPress={() => setEditAvailability(availability)}
-								>
-									<Tooltip content="Edit availability">
-										<Edit />
-									</Tooltip>
-								</Button>
+								<ButtonGroup>
+									<Button
+										isIconOnly
+										variant="light"
+										size="sm"
+										onPress={() => setEditAvailability(availability)}
+									>
+										<Tooltip content="Edit availability">
+											<Edit />
+										</Tooltip>
+									</Button>
+									<Button
+										isIconOnly
+										variant="light"
+										size="sm"
+										onPress={() => setDeleteAvailability(availability)}
+										color="danger"
+										className="text-danger"
+									>
+										<TrashCan />
+									</Button>
+								</ButtonGroup>
 							</TableCell>
 						</TableRow>
 					)}
@@ -153,7 +165,7 @@ export default function Availabilities() {
 			<AddAvailability
 				isOpen={showAddAvailability}
 				onOpenChange={setShowAddAvailability}
-				onSuccess={availabilities.reload}
+				onSuccess={reload}
 			/>
 
 			<EditAvailability
@@ -162,8 +174,25 @@ export default function Availabilities() {
 				onOpenChange={(isOpen) =>
 					!isOpen ? setEditAvailability(undefined) : null
 				}
-				onSuccess={availabilities.reload}
+				onSuccess={reload}
 			/>
+
+			<DeleteConfirmation
+				isOpen={!!deleteAvailability}
+				onOpenChange={(isOpen) =>
+					!isOpen ? setDeleteAvailability(undefined) : null
+				}
+				header="Delete Availability"
+				onDelete={() => sendDeleteAvailability(deleteAvailability?.id)}
+			>
+				{!!deleteAvailability ? (
+					<>
+						The availability{" "}
+						<AvailabilityChip availability={deleteAvailability} /> will be
+						deleted.
+					</>
+				) : null}
+			</DeleteConfirmation>
 		</div>
 	);
 }

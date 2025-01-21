@@ -1,5 +1,5 @@
-import { apiCall } from "@/lib";
-import TaskEditor, { Task } from "./TaskEditor";
+import { apiCall, Task } from "@/lib";
+import TaskEditor from "./TaskEditor";
 import { Button } from "@heroui/react";
 import { AddLarge } from "@carbon/icons-react";
 

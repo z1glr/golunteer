@@ -118,18 +118,31 @@ func getEventsUserPending(args HandlerArgs) responseMessage {
 }
 
 func deleteEvent(args HandlerArgs) responseMessage {
-	response := responseMessage{}
-
 	// check for admin
 	if !args.User.Admin {
-		response.Status = fiber.StatusForbidden
 
+		logger.Warn().Msg("event-delete failed: user is no admin")
+
+		return responseMessage{
+			Status: fiber.StatusForbidden,
+		}
 		// -1 can't be valid
 	} else if eventId := args.C.QueryInt("id", -1); eventId == -1 {
-		response.Status = fiber.StatusBadRequest
-	} else if err := events.Delete(eventId); err != nil {
-		response.Status = fiber.StatusInternalServerError
-	}
+		logger.Log().Msgf("event-delete failed: \"id\" is missing in query")
 
-	return response
+		return responseMessage{
+			Status: fiber.StatusBadRequest,
+		}
+	} else if err := events.Delete(eventId); err != nil {
+
+		logger.Error().Msgf("event-delete failed: can't delete from database: %v", err)
+
+		return responseMessage{
+			Status: fiber.StatusInternalServerError,
+		}
+	} else {
+		logger.Log().Msgf("deleted event with id %d", eventId)
+
+		return responseMessage{}
+	}
 }

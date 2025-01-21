@@ -11,7 +11,7 @@ import (
 
 type EventWithAssignment struct {
 	eventDataDB
-	Tasks map[string]*string `json:"tasks"`
+	Tasks []assignments.EventAssignment `json:"tasks"`
 }
 
 type EventWithAvailabilities struct {
@@ -61,6 +61,7 @@ type EventCreate struct {
 }
 
 func Create(event EventCreate) error {
+	// convert the date to utc
 	if result, err := db.DB.NamedExec("INSERT INTO EVENTS (date, description) VALUES (:date, :description)", event); err != nil {
 		return err
 	} else if id, err := result.LastInsertId(); err != nil {
@@ -160,7 +161,7 @@ func Update(event EventPatch) error {
 func All() ([]eventDataDB, error) {
 	var dbRows []eventDataDB
 
-	if err := db.DB.Select(&dbRows, "SELECT *, DATE_FORMAT(date, '%Y-%m-%dT%H:%i:%s') as date FROM EVENTS"); err != nil {
+	if err := db.DB.Select(&dbRows, "SELECT * FROM EVENTS"); err != nil {
 		return nil, err
 	} else {
 		return dbRows, nil

@@ -1,7 +1,7 @@
 import { Button } from "@heroui/react";
-import EditEvent, { EventSubmitData } from "./EditEvent";
 import { apiCall } from "@/lib";
 import { AddLarge } from "@carbon/icons-react";
+import EventEditor, { EventSubmitData } from "./EventEditor";
 
 export default function AddEvent(props: {
 	className?: string;
@@ -20,8 +20,9 @@ export default function AddEvent(props: {
 	}
 
 	return (
-		<EditEvent
+		<EventEditor
 			{...props}
+			header="Add Event"
 			onSubmit={(data) => void addEvent(data)}
 			footer={
 				<Button
@@ -33,8 +34,6 @@ export default function AddEvent(props: {
 					Add
 				</Button>
 			}
-		>
-			Add Event
-		</EditEvent>
+		/>
 	);
 }

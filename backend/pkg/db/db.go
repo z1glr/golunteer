@@ -19,6 +19,8 @@ func init() {
 	// connect to the database
 	DB = sqlx.MustOpen("sqlite", config.Database)
 
+	DB.MustExec("PRAGMA foreign_keys = ON")
+
 	// create the tables if they don't exist
 	if dbSetupInstructions, err := os.ReadFile("setup.sql"); err != nil {
 		panic("can't read database-setup")

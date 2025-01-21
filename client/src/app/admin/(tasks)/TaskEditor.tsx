@@ -9,7 +9,7 @@ import {
 	ModalFooter,
 	ModalHeader,
 } from "@heroui/react";
-import React, { FormEvent, useState } from "react";
+import React, { FormEvent, useEffect, useState } from "react";
 
 export default function TaskEditor(props: {
 	header: React.ReactNode;
@@ -19,13 +19,20 @@ export default function TaskEditor(props: {
 	onOpenChange?: (isOpen: boolean) => void;
 	onSubmit?: (e: Task) => void;
 }) {
-	const [text, setText] = useState(props.value?.text ?? "");
+	const [name, setName] = useState(props.value?.name ?? "");
 	const [enabled, setEnabled] = useState(props.value?.enabled ?? true);
+
+	// clear the inputs on closing
+	useEffect(() => {
+		if (!props.isOpen) {
+			setName("");
+			setEnabled(true);
+		}
+	}, [props.isOpen]);
 
 	function submit(e: FormEvent<HTMLFormElement>) {
 		const formData = Object.fromEntries(new FormData(e.currentTarget)) as {
-			text: string;
-			color: string;
+			name: string;
 			enabled: string;
 		};
 
@@ -56,10 +63,10 @@ export default function TaskEditor(props: {
 					</ModalHeader>
 					<ModalBody>
 						<Input
-							value={text}
-							onValueChange={setText}
-							name="text"
-							label="Text"
+							value={name}
+							onValueChange={setName}
+							name="name"
+							label="Name"
 							isRequired
 							variant="bordered"
 						/>

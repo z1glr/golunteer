@@ -1,7 +1,8 @@
 import { apiCall, Task } from "@/lib";
-import { AddLarge, Edit } from "@carbon/icons-react";
+import { AddLarge, Edit, TrashCan } from "@carbon/icons-react";
 import {
 	Button,
+	ButtonGroup,
 	Checkbox,
 	Table,
 	TableBody,
@@ -15,20 +16,23 @@ import { useAsyncList } from "@react-stately/data";
 import { useState } from "react";
 import AddTask from "./AddTask";
 import EditTask from "./EditTask";
+import DeleteConfirmation from "@/components/DeleteConfirmation";
+import zustand from "@/Zustand";
 
 export default function Tasks() {
 	const [showAddTask, setShowAddTask] = useState(false);
 	const [editTask, setEditTask] = useState<Task>();
+	const [deleteTask, setDeleteTask] = useState<Task>();
 
 	const tasks = useAsyncList<Task>({
 		async load() {
 			const result = await apiCall("GET", "tasks");
 
 			if (result.ok) {
-				const json = await result.json();
+				const json = (await result.json()) as Task[];
 
 				return {
-					items: json.tasks,
+					items: json,
 				};
 			} else {
 				return {
@@ -43,7 +47,7 @@ export default function Tasks() {
 
 					switch (sortDescriptor.column) {
 						case "text":
-							cmp = a.text.localeCompare(b.text);
+							cmp = a.name.localeCompare(b.name);
 							break;
 						case "enabled":
 							if (a.enabled && !b.enabled) {
@@ -63,6 +67,25 @@ export default function Tasks() {
 			};
 		},
 	});
+
+	function reload() {
+		// clear the zustand
+		zustand.getState().patch({ tasks: undefined });
+
+		// reload the tasks
+		tasks.reload();
+	}
+
+	async function sendDeleteTask(id: number | undefined) {
+		if (id !== undefined) {
+			const result = await apiCall("DELETE", "tasks", { id });
+
+			if (result.ok) {
+				tasks.reload();
+				setDeleteTask(undefined);
+			}
+		}
+	}
 
 	const topContent = (
 		<>
@@ -89,7 +112,7 @@ export default function Tasks() {
 			>
 				<TableHeader>
 					<TableColumn allowsSorting key="userName">
-						Text
+						Name
 					</TableColumn>
 					<TableColumn allowsSorting key="admin" align="center">
 						Enabled
@@ -101,21 +124,33 @@ export default function Tasks() {
 				<TableBody items={tasks.items}>
 					{(task) => (
 						<TableRow key={task.id}>
-							<TableCell>{task.text}</TableCell>
+							<TableCell>{task.name}</TableCell>
 							<TableCell>
 								<Checkbox isSelected={task.enabled} />
 							</TableCell>
 							<TableCell>
-								<Button
-									isIconOnly
-									variant="light"
-									size="sm"
-									onPress={() => setEditTask(task)}
-								>
-									<Tooltip content="Edit task">
-										<Edit />
-									</Tooltip>
-								</Button>
+								<ButtonGroup>
+									<Button
+										isIconOnly
+										variant="light"
+										size="sm"
+										onPress={() => setEditTask(task)}
+									>
+										<Tooltip content="Edit task">
+											<Edit />
+										</Tooltip>
+									</Button>
+									<Button
+										isIconOnly
+										variant="light"
+										size="sm"
+										onPress={() => setDeleteTask(task)}
+										color="danger"
+										className="text-danger"
+									>
+										<TrashCan />
+									</Button>
+								</ButtonGroup>
 							</TableCell>
 						</TableRow>
 					)}
@@ -125,15 +160,32 @@ export default function Tasks() {
 			<AddTask
 				isOpen={showAddTask}
 				onOpenChange={setShowAddTask}
-				onSuccess={tasks.reload}
+				onSuccess={reload}
 			/>
 
 			<EditTask
 				value={editTask}
 				isOpen={!!editTask}
 				onOpenChange={(isOpen) => (!isOpen ? setEditTask(undefined) : null)}
-				onSuccess={tasks.reload}
+				onSuccess={reload}
 			/>
+
+			<DeleteConfirmation
+				isOpen={!!deleteTask}
+				onOpenChange={(isOpen) => (!isOpen ? setDeleteTask(undefined) : null)}
+				header="Delete Task"
+				onDelete={() => sendDeleteTask(deleteTask?.id)}
+			>
+				{!!deleteTask ? (
+					<>
+						The task{" "}
+						<span className="font-numbers text-accent-1">
+							{deleteTask.name}
+						</span>{" "}
+						will be deleted.
+					</>
+				) : null}
+			</DeleteConfirmation>
 		</div>
 	);
 }

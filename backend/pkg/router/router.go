@@ -86,20 +86,22 @@ func init() {
 		"POST": {
 			"events":         postEvent,
 			"users":          postUser,
-			"availabilities": postAvailabilitie,
+			"availabilities": postAvailability,
 			"tasks":          postTask,
 		},
 		"PATCH": {
 			"users":          patchUser,
 			"events":         patchEvent,
-			"availabilities": patchAvailabilities,
+			"availabilities": patchAvailabilitiy,
 			"tasks":          patchTask,
 		},
 		"PUT": {
 			"users/password": putPassword,
 		},
 		"DELETE": {
-			"event": deleteEvent,
+			"event":          deleteEvent,
+			"tasks":          deleteTask,
+			"availabilities": deleteAvailability,
 		},
 	}
 

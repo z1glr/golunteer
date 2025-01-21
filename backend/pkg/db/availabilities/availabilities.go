@@ -10,19 +10,19 @@ type AvailabilityDB struct {
 }
 
 type Availability struct {
-	Text    string `db:"text" json:"text" validate:"required"`
+	Name    string `db:"name" json:"name" validate:"required"`
 	Enabled bool   `db:"enabled" json:"enabled" validate:"required"`
 	Color   string `db:"color" json:"color" validate:"required"`
 }
 
 func Add(a Availability) error {
-	_, err := db.DB.NamedExec("INSERT INTO AVAILABILITIES (text, color, enabled) VALUES (:text, :color, :enabled)", a)
+	_, err := db.DB.NamedExec("INSERT INTO AVAILABILITIES (name, color, enabled) VALUES (:name, :color, :enabled)", a)
 
 	return err
 }
 
 func Update(a AvailabilityDB) error {
-	_, err := db.DB.NamedExec("UPDATE AVAILABILITIES SET text = :text, color = :color, enabled = :enabled WHERE id = :id", a)
+	_, err := db.DB.NamedExec("UPDATE AVAILABILITIES SET name = :name, color = :color, enabled = :enabled WHERE id = :id", a)
 
 	return err
 }
@@ -47,7 +47,7 @@ func Keys() (map[int]Availability, error) {
 
 		for _, a := range availabilitiesRaw {
 			availabilities[a.Id] = Availability{
-				Text:    a.Text,
+				Name:    a.Name,
 				Enabled: a.Enabled,
 				Color:   a.Color,
 			}
@@ -55,4 +55,10 @@ func Keys() (map[int]Availability, error) {
 
 		return availabilities, nil
 	}
+}
+
+func Delete(id int) error {
+	_, err := db.DB.Exec("DELETE FROM AVAILABILITIES WHERE id = $1", id)
+
+	return err
 }

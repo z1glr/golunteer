@@ -2,6 +2,7 @@ import { apiCall } from "@/lib";
 import AvailabilityEditor, { Availability } from "./AvailabilityEditor";
 import { Button } from "@heroui/react";
 import { Renew } from "@carbon/icons-react";
+import AvailabilityChip from "@/components/AvailabilityChip";
 
 export default function EditAvailability(props: {
 	value: Availability | undefined;
@@ -24,9 +25,9 @@ export default function EditAvailability(props: {
 			header={
 				<>
 					Edit Availability{" "}
-					<span className="font-numbers font-normal italic">
-						&quot;{props.value?.text}&quot;
-					</span>
+					{!!props.value ? (
+						<AvailabilityChip availability={props.value} className="ms-4" />
+					) : null}
 				</>
 			}
 			footer={

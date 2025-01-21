@@ -2,11 +2,13 @@
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { Task } from "./lib";
+import { Availability } from "./app/admin/(availabilities)/AvailabilityEditor";
 
 export interface EventData {
 	id: number;
 	date: string;
-	tasks: Partial<Record<string, string | null>>;
+	tasks: { taskID: number; taskName: string; userName: string | null }[];
 	description: string;
 }
 
@@ -17,6 +19,9 @@ export interface User {
 
 interface Zustand {
 	user: User | null;
+	tasks?: Task[];
+	availabilities?: Availability[];
+	patch: (zustand?: Partial<Zustand>) => void;
 	reset: (zustand?: Partial<Zustand>) => void;
 }
 
@@ -26,19 +31,24 @@ const initialState = {
 
 const zustand = create<Zustand>()(
 	persist(
-		(set) => ({
+		(set, get) => ({
 			...initialState,
-			reset: (newZustand) =>
+			reset: (newZustand) => {
+				console.debug("reset");
 				set({
 					...initialState,
 					...newZustand,
-				}),
+				});
+			},
+			patch: (patch) => set({ ...get(), ...patch }),
 		}),
 		{
 			name: "golunteer-storage",
 			partialize: (state) =>
 				Object.fromEntries(
-					Object.entries(state).filter(([key]) => ["user"].includes(key)),
+					Object.entries(state).filter(([key]) =>
+						["user", "tasksList", "tasksMap"].includes(key),
+					),
 				),
 		},
 	),

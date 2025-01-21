@@ -33,7 +33,7 @@ export default function Main({ children }: { children: React.ReactNode }) {
 					const response = await welcomeResult.json();
 
 					if (response.userName !== undefined && response.userName !== "") {
-						zustand.getState().reset({ user: response });
+						zustand.getState().patch({ user: response });
 
 						loggedIn = true;
 					}

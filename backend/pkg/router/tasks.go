@@ -6,32 +6,15 @@ import (
 )
 
 func getTasks(args HandlerArgs) responseMessage {
-	// check wether the "map"-query is given
-	if args.C.QueryBool("map") {
-		if tasks, err := tasks.GetMap(); err != nil {
-			logger.Error().Msgf("can't get tasks: %v", err)
+	if taskSlice, err := tasks.GetSlice(); err != nil {
+		logger.Error().Msgf("can't get tasks: %v", err)
 
-			return responseMessage{
-				Status: fiber.StatusInternalServerError,
-			}
-		} else {
-			return responseMessage{
-				Data: tasks,
-			}
+		return responseMessage{
+			Status: fiber.StatusInternalServerError,
 		}
 	} else {
-		if taskSlice, err := tasks.GetSlice(); err != nil {
-			logger.Error().Msgf("can't get tasks: %v", err)
-
-			return responseMessage{
-				Status: fiber.StatusInternalServerError,
-			}
-		} else {
-			return responseMessage{
-				Data: struct {
-					Tasks []tasks.TaskDB `json:"tasks"`
-				}{Tasks: taskSlice},
-			}
+		return responseMessage{
+			Data: taskSlice,
 		}
 	}
 }
@@ -113,5 +96,34 @@ func patchTask(args HandlerArgs) responseMessage {
 		} else {
 			return responseMessage{}
 		}
+	}
+}
+
+func deleteTask(args HandlerArgs) responseMessage {
+	// check admin
+	if !args.User.Admin {
+		logger.Warn().Msg("task-deletion failed: user is no admin")
+
+		return responseMessage{
+			Status: fiber.StatusUnauthorized,
+		}
+
+		// parse the query
+	} else if taskID := args.C.QueryInt("id", -1); taskID == -1 {
+		logger.Log().Msg("task-deletion failed: invalid query: doesn't include \"id\"")
+
+		return responseMessage{
+			Status: fiber.StatusBadRequest,
+		}
+
+		// delete the task from the database
+	} else if err := tasks.Delete(taskID); err != nil {
+		logger.Error().Msgf("task-deletion failed: can't delete task from database: %v", err)
+
+		return responseMessage{
+			Status: fiber.StatusInternalServerError,
+		}
+	} else {
+		return responseMessage{}
 	}
 }

@@ -1,9 +1,9 @@
 "use client";
 
 import AddEvent from "@/components/Event/AddEvent";
-import EditEvent, { EventSubmitData } from "@/components/Event/EditEvent";
+import EditEvent from "@/components/Event/EditEvent";
 import LocalDate from "@/components/LocalDate";
-import { apiCall, getTaskMap } from "@/lib";
+import { apiCall, getTasks } from "@/lib";
 import { EventData } from "@/Zustand";
 import {
 	Add,
@@ -31,6 +31,7 @@ import {
 	TableBody,
 	TableCell,
 	TableColumn,
+	TableColumnProps,
 	TableHeader,
 	TableRow,
 	Tooltip,
@@ -46,20 +47,30 @@ export default function AdminPanel() {
 	const [deleteEvent, setDeleteEvent] = useState<EventData | undefined>();
 
 	// get the available tasks and craft them into the headers
-	const headers = useAsyncList({
+	const headers = useAsyncList<{
+		key: string | number;
+		label: string;
+		align?: string;
+	}>({
 		async load() {
-			const tasks = await getTaskMap();
+			const tasks = await getTasks();
 
-			return {
+			const headers = {
 				items: [
 					{ key: "date", label: "Date" },
 					{ key: "description", label: "Description" },
-					...Object.values(tasks)
+					...tasks
 						.filter((task) => task.enabled)
-						.map((task) => ({ label: task.text, key: task.text })),
-					{ key: "actions", label: "Action" },
+						.map((task) => ({
+							label: task.name,
+							key: task.id ?? -1,
+							align: "center",
+						})),
+					{ key: "actions", label: "Action", align: "center" },
 				],
 			};
+
+			return headers;
 		},
 	});
 
@@ -72,7 +83,9 @@ export default function AdminPanel() {
 			);
 
 			if (result.ok) {
-				return { items: await result.json() };
+				const data = await result.json();
+
+				return { items: data };
 			} else {
 				return { items: [] };
 			}
@@ -145,7 +158,7 @@ export default function AdminPanel() {
 									<Edit />
 								</Tooltip>
 							</Button>
-							<Button>
+							<Button onPress={() => alert("implement")}>
 								<Tooltip content="Duplicate event">
 									<Copy />
 								</Tooltip>
@@ -165,13 +178,13 @@ export default function AdminPanel() {
 				);
 			default:
 				// only show the selector, if the task is needed for the event
-				if (Object.keys(event.tasks).includes(key as string)) {
+				if (event.tasks?.some((t) => t.taskID == key)) {
 					return (
 						<Dropdown>
 							<DropdownTrigger>
-								{!!event.tasks[key as string] ? (
+								{!!event.tasks.find((t) => t.taskID === key)?.userName ? (
 									<Chip onClose={() => alert("implement")}>
-										{event.tasks[key as string]}
+										{event.tasks.find((t) => t.taskID === key)?.taskName}
 									</Chip>
 								) : (
 									<Button isIconOnly size="sm" radius="md" variant="flat">
@@ -200,17 +213,6 @@ export default function AdminPanel() {
 				} else {
 					return <NotAvailable className="mx-auto text-foreground-300" />;
 				}
-		}
-	}
-
-	async function updateEvent(data: EventSubmitData) {
-		const result = await apiCall("PATCH", "events", undefined, data);
-
-		if (result.ok) {
-			// clear the selected-event to hide the modal
-			setEditEvent(undefined);
-
-			events.reload();
 		}
 	}
 
@@ -251,7 +253,7 @@ export default function AdminPanel() {
 						<TableColumn
 							allowsSorting={task.key === "date"}
 							key={task.key}
-							className=""
+							align={task.align as TableColumnProps<string>["align"]}
 						>
 							{task.label}
 						</TableColumn>
@@ -277,8 +279,11 @@ export default function AdminPanel() {
 			<EditEvent
 				isOpen={editEvent !== undefined}
 				onOpenChange={(isOpen) => (!isOpen ? setEditEvent(undefined) : null)}
-				onSubmit={updateEvent}
-				initialState={editEvent}
+				onSuccess={() => {
+					setEditEvent(undefined);
+					events.reload();
+				}}
+				value={editEvent}
 				footer={
 					<Button
 						color="primary"

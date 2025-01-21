@@ -10,7 +10,7 @@ type TaskDB struct {
 }
 
 type Task struct {
-	Text    string `json:"text" db:"text" validate:"required"`
+	Name    string `json:"name" db:"name" validate:"required"`
 	Enabled bool   `json:"enabled" db:"enabled" validate:"required"`
 }
 
@@ -34,7 +34,7 @@ func GetMap() (map[int]Task, error) {
 
 		for _, a := range tasksRaw {
 			tasks[a.ID] = Task{
-				Text:    a.Text,
+				Name:    a.Name,
 				Enabled: a.Enabled,
 			}
 		}
@@ -44,13 +44,19 @@ func GetMap() (map[int]Task, error) {
 }
 
 func Add(t Task) error {
-	_, err := db.DB.NamedExec("INSERT INTO TASKS (text, enabled) VALUES (:text, :enabled)", &t)
+	_, err := db.DB.NamedExec("INSERT INTO TASKS (name, enabled) VALUES (:name, :enabled)", &t)
 
 	return err
 }
 
 func Update(t TaskDB) error {
-	_, err := db.DB.NamedExec("UPDATE TASKS set text = :text, enabled = :enabled WHERE id = :id", &t)
+	_, err := db.DB.NamedExec("UPDATE TASKS set name = :name, enabled = :enabled WHERE id = :id", &t)
+
+	return err
+}
+
+func Delete(i int) error {
+	_, err := db.DB.Exec("DELETE FROM TASKS WHERE id = $1", i)
 
 	return err
 }

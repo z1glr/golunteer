@@ -9,10 +9,10 @@ import {
 	ModalFooter,
 	ModalHeader,
 } from "@heroui/react";
-import React, { FormEvent, useState } from "react";
+import React, { FormEvent, useEffect, useState } from "react";
 
 export interface Availability {
-	text: string;
+	name: string;
 	color: string;
 	id: number | undefined;
 	enabled: boolean;
@@ -26,13 +26,22 @@ export default function AvailabilityEditor(props: {
 	onOpenChange?: (isOpen: boolean) => void;
 	onSubmit?: (e: Availability) => void;
 }) {
-	const [text, setText] = useState(props.value?.text ?? "");
+	const [name, setName] = useState(props.value?.name ?? "");
 	const [color, setColor] = useState(props.value?.color ?? "Red");
 	const [enabled, setEnabled] = useState(props.value?.enabled ?? true);
 
+	// clear the inputs on closing
+	useEffect(() => {
+		if (!props.isOpen) {
+			setName("");
+			setColor("");
+			setEnabled(true);
+		}
+	}, [props.isOpen]);
+
 	function submit(e: FormEvent<HTMLFormElement>) {
 		const formData = Object.fromEntries(new FormData(e.currentTarget)) as {
-			text: string;
+			name: string;
 			color: string;
 			enabled: string;
 		};
@@ -64,10 +73,10 @@ export default function AvailabilityEditor(props: {
 					</ModalHeader>
 					<ModalBody>
 						<Input
-							value={text}
-							onValueChange={setText}
-							name="text"
-							label="Text"
+							value={name}
+							onValueChange={setName}
+							name="name"
+							label="Name"
 							isRequired
 							variant="bordered"
 						/>
