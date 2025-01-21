@@ -1,14 +1,14 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
 	getLocalTimeZone,
 	now,
 	parseAbsoluteToLocal,
+	ZonedDateTime,
 } from "@internationalized/date";
 import {
 	Checkbox,
 	CheckboxGroup,
 	DatePicker,
-	DateValue,
 	Form,
 	Modal,
 	ModalBody,
@@ -36,7 +36,7 @@ export default function EventEditor(props: {
 	onOpenChange: (isOpen: boolean) => void;
 	onSubmit?: (data: EventSubmitData) => void;
 }) {
-	const [date, setDate] = useState<DateValue>(
+	const [date, setDate] = useState<ZonedDateTime | null>(
 		!!props.value?.date
 			? parseAbsoluteToLocal(props.value?.date)
 			: now(getLocalTimeZone()),
@@ -50,7 +50,7 @@ export default function EventEditor(props: {
 	const tasks = zustand((state) => state.tasks);
 
 	function onSubmit() {
-		if (!!props.onSubmit) {
+		if (!!props.onSubmit && !!date) {
 			props.onSubmit({
 				id: props.value?.id ?? -1,
 				date: date.toAbsoluteString(),

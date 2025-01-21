@@ -55,7 +55,7 @@ func (e eventDataDB) EventWithAvailabilities() (EventWithAvailabilities, error) 
 }
 
 type EventCreate struct {
-	Date        string `db:"date" json:"date" validate:"required"`
+	Date        string `db:"date" json:"date" validate:"required,datetime=2006-01-02T15:04:05.999999999Z"`
 	Description string `db:"description" json:"description"`
 	Tasks       []int  `json:"tasks" validate:"required,min=1"`
 }
