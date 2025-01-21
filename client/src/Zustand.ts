@@ -8,8 +8,14 @@ import { Availability } from "./app/admin/(availabilities)/AvailabilityEditor";
 export interface EventData {
 	id: number;
 	date: string;
-	tasks: { taskID: number; taskName: string; userName: string | null }[];
+	tasks: TaskAssignment[];
 	description: string;
+}
+
+interface TaskAssignment {
+	taskID: number;
+	taskName: string;
+	userName: string | null;
 }
 
 export interface User {

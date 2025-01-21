@@ -6,32 +6,38 @@ import { apiCall } from "@/lib";
 import zustand, { EventData } from "@/Zustand";
 import { Add } from "@carbon/icons-react";
 import { Button } from "@heroui/react";
-import { useEffect, useState } from "react";
+import { useAsyncList } from "@react-stately/data";
+import { useState } from "react";
 
 export default function Events() {
 	const [showAddItemDialogue, setShowAddItemDialogue] = useState(false);
-	const events = zustand((state) => state.events);
 	const admin = zustand((state) => state.user?.admin);
 
-	useEffect(() => {
-		(async () => {
-			const data = await apiCall<EventData[]>("GET", "events/assignments");
+	const events = useAsyncList<EventData>({
+		async load() {
+			const result = await apiCall("GET", "events/assignments");
 
-			if (data.ok) {
-				zustand.getState().setEvents(await data.json());
+			if (result.ok) {
+				const data = await result.json();
+
+				console.debug(data);
+
+				return {
+					items: data,
+				};
 			}
 
 			return {
 				items: [],
 			};
-		})();
-	}, []);
+		},
+	});
 
 	return (
 		<div className="relative flex-1">
 			<h2 className="mb-4 text-center text-4xl">Upcoming Events</h2>
 			<div className="flex flex-wrap justify-center gap-4">
-				{events.map((ee, ii) => (
+				{events.items.map((ee, ii) => (
 					<Event key={ii} event={ee}>
 						<div className="mt-auto">
 							<AssignmentTable tasks={ee.tasks} />

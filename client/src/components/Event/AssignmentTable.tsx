@@ -8,11 +8,13 @@ export default function AssignmentTable({
 	return (
 		<table>
 			<tbody>
-				{Object.entries(tasks).map(([task, person]) => (
-					<tr key={task}>
-						<th className="pr-4 text-left">{task}</th>
+				{tasks.map((task) => (
+					<tr key={task.taskID}>
+						<th className="pr-4 text-left">{task.taskName}</th>
 						<td>
-							{person ?? <span className="italic text-highlight">missing</span>}
+							{task.userName ?? (
+								<span className="italic text-highlight">missing</span>
+							)}
 						</td>
 					</tr>
 				))}
