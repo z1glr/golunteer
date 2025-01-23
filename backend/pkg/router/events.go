@@ -137,14 +137,74 @@ func (a *Handler) putEventUserAvailability() {
 			logger.Log().Msgf("setting user-event-availability failed: can't get parse: %v", err)
 
 			// insert the availability into the database
-		} else if err := events.UserAvailability(a.UserName, eventID, availabilityID); err != nil {
+		} else if err := events.UserAvailability(eventID, availabilityID, a.UserName); err != nil {
 			a.Status = fiber.StatusInternalServerError
 
 			logger.Error().Msgf("setting user-event-availability failed: can't write availability to database: %v", err)
 		}
 	}
+}
 
-	// parse the body
+func (a *Handler) putEventAssignment() {
+	// check admin
+	if !a.Admin {
+		a.Status = fiber.StatusUnauthorized
+
+		logger.Warn().Msg("setting event-assignment failed: user is no admin")
+
+		// retrieve the eventID from the query
+	} else if eventID := a.C.QueryInt("eventID", -1); eventID == -1 {
+		a.Status = fiber.StatusBadRequest
+
+		logger.Warn().Msg("setting event-assignment failed: query is missing \"eventID\"")
+
+		// retrieve the taskID from the query
+	} else if taskID := a.C.QueryInt("taskID", -1); taskID == -1 {
+		a.Status = fiber.StatusBadRequest
+
+		logger.Warn().Msg("setting event-assignment failed: query is missing \"taskID\"")
+
+		// parse the body
+	} else if userName := string(a.C.Body()); userName == "" {
+		a.Status = fiber.StatusBadRequest
+
+		logger.Warn().Msg("setting event-assignment failed: body is missing")
+
+		// set the availability in the database
+	} else if err := events.SetAssignment(eventID, taskID, userName); err != nil {
+		a.Status = fiber.StatusBadRequest
+
+		logger.Warn().Msgf("setting event-assignment failed: can't write to database: %v", err)
+	}
+
+}
+
+func (a *Handler) deleteEventAssignment() {
+	// check admin
+	if !a.Admin {
+		a.Status = fiber.StatusUnauthorized
+
+		logger.Warn().Msg("deleting event-assignment failed: user is no admin")
+
+		// retrieve the eventID from the query
+	} else if eventID := a.C.QueryInt("eventID", -1); eventID == -1 {
+		a.Status = fiber.StatusBadRequest
+
+		logger.Warn().Msg("deleting event-assignment failed: query is missing \"eventID\"")
+
+		// retrieve the taskID from the query
+	} else if taskID := a.C.QueryInt("taskID", -1); taskID == -1 {
+		a.Status = fiber.StatusBadRequest
+
+		logger.Warn().Msg("deleting event-assignment failed: query is missing \"taskID\"")
+
+		// set the availability in the database
+	} else if err := events.DeleteAssignment(eventID, taskID); err != nil {
+		a.Status = fiber.StatusBadRequest
+
+		logger.Warn().Msgf("deleting event-assignment failed: can't write to database: %v", err)
+	}
+
 }
 
 func (a *Handler) deleteEvent() {

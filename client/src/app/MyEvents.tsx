@@ -10,8 +10,12 @@ export default function MyEvents() {
 			const result = await apiCall<EventData[]>("GET", "events/user/assigned");
 
 			if (result.ok) {
+				const data = await result.json();
+
+				console.debug(data);
+
 				return {
-					items: await result.json(),
+					items: data,
 				};
 			} else {
 				return {

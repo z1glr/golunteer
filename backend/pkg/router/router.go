@@ -107,14 +107,16 @@ func init() {
 			"tasks":          (*Handler).patchTask,          // modify a task
 		},
 		"PUT": {
-			"users/password":           (*Handler).putPassword,              // change the password
 			"events/user/availability": (*Handler).putEventUserAvailability, // set or change the users availability for a specific event
+			"events/assignments":       (*Handler).putEventAssignment,
+			"users/password":           (*Handler).putPassword, // change the password
 		},
 		"DELETE": {
-			"event":          (*Handler).deleteEvent,        // remove an event
-			"tasks":          (*Handler).deleteTask,         // remove a task
-			"availabilities": (*Handler).deleteAvailability, // remove an availability
-			"users":          (*Handler).deleteUser,         // remove an user
+			"event":              (*Handler).deleteEvent, // remove an event
+			"events/assignments": (*Handler).deleteEventAssignment,
+			"tasks":              (*Handler).deleteTask,         // remove a task
+			"availabilities":     (*Handler).deleteAvailability, // remove an availability
+			"users":              (*Handler).deleteUser,         // remove an user
 		},
 	}
 

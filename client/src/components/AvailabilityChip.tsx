@@ -6,11 +6,11 @@ export default function AvailabilityChip({
 	availability,
 	className,
 }: {
-	availability: Availability;
+	availability?: Availability;
 	className?: string;
 	classNames?: ChipProps["classNames"];
 }) {
-	return (
+	return !!availability ? (
 		<Chip
 			classNames={{
 				base: `bg-${color2Tailwind(availability.color)}`,
@@ -19,5 +19,5 @@ export default function AvailabilityChip({
 		>
 			{availability.availabilityName}
 		</Chip>
-	);
+	) : null;
 }

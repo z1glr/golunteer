@@ -59,7 +59,7 @@ export async function apiCall<K>(
 		},
 		credentials: "include",
 		method,
-		body: body !== undefined ? JSON.stringify(body) : undefined,
+		body: prepareBody(body),
 	});
 
 	return response;
@@ -76,6 +76,19 @@ function getContentType(type: string): string {
 			return "text/plain";
 		default:
 			return "application/octet-stream";
+	}
+}
+
+function prepareBody(
+	body: object | number | string | boolean | undefined,
+): BodyInit | undefined {
+	switch (typeof body) {
+		case "object":
+			return JSON.stringify(body);
+		case "undefined":
+			return undefined;
+		default:
+			return body.toString();
 	}
 }
 
@@ -157,11 +170,11 @@ export async function getAvailabilities(): Promise<Availability[]> {
 		const result = await apiCall<Availability[]>("GET", "availabilities");
 
 		if (result.ok) {
-			const tasks = await result.json();
+			const availabilities = await result.json();
 
-			state.patch({ availabilities: tasks });
+			state.patch({ availabilities: availabilities });
 
-			return tasks;
+			return availabilities;
 		} else {
 			return [];
 		}

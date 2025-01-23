@@ -9,7 +9,9 @@ type eventAvailabilities struct {
 	AvailabilityID int    `db:"availabilityID"`
 }
 
-func Event(eventID int) (map[string]string, error) {
+type AvailabilityMap map[int][]string
+
+func Event(eventID int) (AvailabilityMap, error) {
 	// get the availabilities for the event
 	var availabilitiesRows []eventAvailabilities
 
@@ -17,17 +19,18 @@ func Event(eventID int) (map[string]string, error) {
 		return nil, err
 	} else {
 		// transform the result into a map
-		eventAvailabilities := map[string]string{}
+		eventAvailabilities := AvailabilityMap{}
 
 		// get the availabilities
-		if availabilitiesMap, err := Keys(); err != nil {
-			return nil, err
-		} else {
-			for _, a := range availabilitiesRows {
-				eventAvailabilities[a.UserName] = availabilitiesMap[a.AvailabilityID].AvailabilityName
+		for _, a := range availabilitiesRows {
+			// if there is no slice for this availability, create it
+			if _, exists := eventAvailabilities[a.AvailabilityID]; !exists {
+				eventAvailabilities[a.AvailabilityID] = make([]string, 0)
 			}
 
-			return eventAvailabilities, nil
+			eventAvailabilities[a.AvailabilityID] = append(eventAvailabilities[a.AvailabilityID], a.UserName)
 		}
+
+		return eventAvailabilities, nil
 	}
 }

@@ -32,7 +32,7 @@ type EventWithAssignment struct {
 
 type EventWithAvailabilities struct {
 	EventWithAssignment
-	Availabilities map[string]string `json:"availabilities"`
+	Availabilities availabilities.AvailabilityMap `json:"availabilities"`
 }
 
 type EventCreate struct {
@@ -268,8 +268,22 @@ func User(userName string) ([]EventWithAssignment, error) {
 }
 
 // set the availability of an user for a specific event
-func UserAvailability(userName string, eventID, availabilityID int) error {
+func UserAvailability(eventID, availabilityID int, userName string) error {
 	_, err := db.DB.Exec("INSERT INTO USER_AVAILABILITIES (userName, eventID, availabilityID) VALUES ($1, $2, $3) ON CONFLICT (userName, eventID) DO UPDATE SET availabilityID = $3", userName, eventID, availabilityID)
+
+	return err
+}
+
+// set the assignment of an user to a task for a specific event
+func SetAssignment(eventID, taskID int, userName string) error {
+	_, err := db.DB.Exec("UPDATE USER_ASSIGNMENTS SET userName = $1 WHERE eventID = $2 AND taskID = $3", userName, eventID, taskID)
+
+	return err
+}
+
+// remove the assignment of an user
+func DeleteAssignment(eventID, taskID int) error {
+	_, err := db.DB.Exec("UPDATE USER_ASSIGNMENTS SET userName = null WHERE eventID = $1 AND taskID = $2", eventID, taskID)
 
 	return err
 }
