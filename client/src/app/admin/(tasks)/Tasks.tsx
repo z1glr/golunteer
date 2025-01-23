@@ -47,7 +47,7 @@ export default function Tasks() {
 
 					switch (sortDescriptor.column) {
 						case "text":
-							cmp = a.name.localeCompare(b.name);
+							cmp = a.taskName.localeCompare(b.taskName);
 							break;
 						case "enabled":
 							if (a.enabled && !b.enabled) {
@@ -76,9 +76,9 @@ export default function Tasks() {
 		tasks.reload();
 	}
 
-	async function sendDeleteTask(id: number | undefined) {
-		if (id !== undefined) {
-			const result = await apiCall("DELETE", "tasks", { id });
+	async function sendDeleteTask(taskID: number | undefined) {
+		if (taskID !== undefined) {
+			const result = await apiCall("DELETE", "tasks", { taskID });
 
 			if (result.ok) {
 				tasks.reload();
@@ -130,8 +130,8 @@ export default function Tasks() {
 				</TableHeader>
 				<TableBody items={tasks.items}>
 					{(task) => (
-						<TableRow key={task.id}>
-							<TableCell>{task.name}</TableCell>
+						<TableRow key={task.taskID}>
+							<TableCell>{task.taskName}</TableCell>
 							<TableCell>
 								<Checkbox isSelected={task.enabled} />
 							</TableCell>
@@ -181,13 +181,13 @@ export default function Tasks() {
 				isOpen={!!deleteTask}
 				onOpenChange={(isOpen) => (!isOpen ? setDeleteTask(undefined) : null)}
 				itemName="Task"
-				onDelete={() => sendDeleteTask(deleteTask?.id)}
+				onDelete={() => sendDeleteTask(deleteTask?.taskID)}
 			>
 				{!!deleteTask ? (
 					<>
 						The task{" "}
 						<span className="font-numbers text-accent-1">
-							{deleteTask.name}
+							{deleteTask.taskName}
 						</span>{" "}
 						will be deleted.
 					</>

@@ -7,8 +7,8 @@ import (
 )
 
 type User struct {
-	Name  string `db:"name" json:"userName"`
-	Admin bool   `db:"admin" json:"admin"`
+	UserName string `db:"userName" json:"userName"`
+	Admin    bool   `db:"admin" json:"admin"`
 }
 
 type UserChangePassword struct {
@@ -25,7 +25,7 @@ func Get() ([]User, error) {
 	// get the users from the database
 	var users []User
 
-	if err := db.DB.Select(&users, "SELECT name, admin FROM USERS"); err != nil {
+	if err := db.DB.Select(&users, "SELECT userName, admin FROM USERS"); err != nil {
 		return nil, err
 	} else {
 		return users, nil
@@ -37,7 +37,7 @@ func TokenID(userName string) (string, error) {
 		TokenID string `db:"tokenID"`
 	}
 
-	err := db.DB.Get(&dbResult, "SELECT tokenID FROM USERS WHERE name = ?", userName)
+	err := db.DB.Get(&dbResult, "SELECT tokenID FROM USERS WHERE userName = ?", userName)
 
 	return dbResult.TokenID, err
 }
@@ -63,7 +63,7 @@ func Add(user UserAdd) error {
 			TokenID:  uuid.NewString(),
 		}
 
-		_, err := db.DB.NamedExec("INSERT INTO USERS (name, password, admin, tokenID) VALUES (:userName, :password, :admin, :tokenID)", insertUser)
+		_, err := db.DB.NamedExec("INSERT INTO USERS (userName, password, admin, tokenID) VALUES (:userName, :password, :admin, :tokenID)", insertUser)
 
 		return err
 	}
@@ -93,19 +93,19 @@ func ChangePassword(user UserChangePassword) (string, error) {
 }
 
 func ChangeName(userName, newName string) error {
-	_, err := db.DB.Exec("UPDATE USERS SET name = ? WHERE name = ?", newName, userName)
+	_, err := db.DB.Exec("UPDATE USERS SET userName = ? WHERE userName = ?", newName, userName)
 
 	return err
 }
 
 func SetAdmin(userName string, admin bool) error {
-	_, err := db.DB.Exec("UPDATE USERS SET admin = ? WHERE name = ?", admin, userName)
+	_, err := db.DB.Exec("UPDATE USERS SET admin = ? WHERE userName = ?", admin, userName)
 
 	return err
 }
 
 func Delete(userName string) error {
-	_, err := db.DB.Exec("DELETE FROM USERS WHERE name = $1", userName)
+	_, err := db.DB.Exec("DELETE FROM USERS WHERE userName = $1", userName)
 
 	return err
 }

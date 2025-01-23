@@ -38,17 +38,17 @@ func setup() {
 
 		// create an admin-user
 		user := struct {
-			Name     string `db:"name"`
+			UserName string `db:"userName"`
 			Password []byte `db:"password"`
 			Admin    bool   `db:"admin"`
 			TokenID  string `db:"tokenID"`
 		}{
-			Name:     "admin",
+			UserName: "admin",
 			Password: passwordHash,
 			Admin:    true,
 			TokenID:  uuid.NewString(),
 		}
-		if _, err := DB.NamedExec("INSERT INTO USERS (name, password, tokenID, admin) VALUES (:name, :password, :tokenID, :admin)", &user); err != nil {
+		if _, err := DB.NamedExec("INSERT INTO USERS (userName, password, tokenID, admin) VALUES (:userName, :password, :tokenID, :admin)", &user); err != nil {
 			panic(fmt.Errorf("can't insert admin-user into the database: %v", err))
 		}
 

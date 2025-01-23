@@ -21,7 +21,7 @@ export default function EditAvailability(props: {
 
 	return (
 		<AvailabilityEditor
-			key={props.value?.id}
+			key={props.value?.availabilityID}
 			header={
 				<>
 					Edit Availability{" "}

@@ -1,7 +1,7 @@
 "use client";
 
 import LocalDate from "../LocalDate";
-import { EventData } from "@/Zustand";
+import { BaseEvent } from "@/Zustand";
 import { Card, CardBody, CardHeader, Divider } from "@heroui/react";
 import React from "react";
 
@@ -9,7 +9,7 @@ export default function Event({
 	event,
 	children,
 }: {
-	event: EventData;
+	event: BaseEvent;
 	children?: React.ReactNode;
 }) {
 	return (

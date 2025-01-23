@@ -5,125 +5,93 @@ import (
 	"github.com/johannesbuehl/golunteer/backend/pkg/db/tasks"
 )
 
-func getTasks(args HandlerArgs) responseMessage {
+func (a *Handler) getTasks() {
 	if taskSlice, err := tasks.GetSlice(); err != nil {
 		logger.Error().Msgf("can't get tasks: %v", err)
 
-		return responseMessage{
-			Status: fiber.StatusInternalServerError,
-		}
+		a.Status = fiber.StatusInternalServerError
 	} else {
-		return responseMessage{
-			Data: taskSlice,
-		}
+		a.Data = taskSlice
 	}
 }
 
-func postTask(args HandlerArgs) responseMessage {
+func (a *Handler) postTask() {
 	// check admin
-	if !args.User.Admin {
+	if !a.Admin {
 		logger.Log().Msgf("user is not admin")
 
-		return responseMessage{
-			Status: fiber.StatusUnauthorized,
-		}
+		a.Status = fiber.StatusUnauthorized
 	} else {
 		// parse the body
 		var task tasks.Task
 
-		if err := args.C.BodyParser(&task); err != nil {
+		if err := a.C.BodyParser(&task); err != nil {
 			logger.Log().Msgf("can't parse body: %v", err)
 
-			return responseMessage{
-				Status: fiber.StatusBadRequest,
-			}
+			a.Status = fiber.StatusBadRequest
 
 			// validate the body
 		} else if err := validate.Struct(&task); err != nil {
 			logger.Log().Msgf("invalid body: %v", err)
 
-			return responseMessage{
-				Status: fiber.StatusBadRequest,
-			}
+			a.Status = fiber.StatusBadRequest
 
 			// insert the task into the database
 		} else if err := tasks.Add(task); err != nil {
 			logger.Error().Msgf("can't add task: %v", err)
 
-			return responseMessage{
-				Status: fiber.StatusInternalServerError,
-			}
-		} else {
-			return responseMessage{}
+			a.Status = fiber.StatusInternalServerError
 		}
 	}
 }
 
-func patchTask(args HandlerArgs) responseMessage {
+func (a *Handler) patchTask() {
 	// check admin
-	if !args.User.Admin {
+	if !a.Admin {
 		logger.Log().Msgf("user is not admin")
 
-		return responseMessage{
-			Status: fiber.StatusUnauthorized,
-		}
+		a.Status = fiber.StatusUnauthorized
 	} else {
 		// parse the body
 		var task tasks.TaskDB
 
-		if err := args.C.BodyParser(&task); err != nil {
+		if err := a.C.BodyParser(&task); err != nil {
 			logger.Log().Msgf("can't parse body: %v", err)
 
-			return responseMessage{
-				Status: fiber.StatusBadRequest,
-			}
+			a.Status = fiber.StatusBadRequest
 
 			// validate the body
 		} else if err := validate.Struct(&task); err != nil {
 			logger.Log().Msgf("invalid body: %v", err)
 
-			return responseMessage{
-				Status: fiber.StatusBadRequest,
-			}
+			a.Status = fiber.StatusBadRequest
 
 			// insert the task into the database
 		} else if err := tasks.Update(task); err != nil {
 			logger.Error().Msgf("can't update task: %v", err)
 
-			return responseMessage{
-				Status: fiber.StatusInternalServerError,
-			}
-		} else {
-			return responseMessage{}
+			a.Status = fiber.StatusInternalServerError
 		}
 	}
 }
 
-func deleteTask(args HandlerArgs) responseMessage {
+func (a *Handler) deleteTask() {
 	// check admin
-	if !args.User.Admin {
+	if !a.Admin {
 		logger.Warn().Msg("task-deletion failed: user is no admin")
 
-		return responseMessage{
-			Status: fiber.StatusUnauthorized,
-		}
+		a.Status = fiber.StatusUnauthorized
 
 		// parse the query
-	} else if taskID := args.C.QueryInt("id", -1); taskID == -1 {
-		logger.Log().Msg("task-deletion failed: invalid query: doesn't include \"id\"")
+	} else if taskID := a.C.QueryInt("taskID", -1); taskID == -1 {
+		logger.Log().Msg("task-deletion failed: invalid query: doesn't include \"taskID\"")
 
-		return responseMessage{
-			Status: fiber.StatusBadRequest,
-		}
+		a.Status = fiber.StatusBadRequest
 
 		// delete the task from the database
 	} else if err := tasks.Delete(taskID); err != nil {
 		logger.Error().Msgf("task-deletion failed: can't delete task from database: %v", err)
 
-		return responseMessage{
-			Status: fiber.StatusInternalServerError,
-		}
-	} else {
-		return responseMessage{}
+		a.Status = fiber.StatusInternalServerError
 	}
 }

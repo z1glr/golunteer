@@ -17,7 +17,7 @@ export default function AvailabilityChip({
 			}}
 			className={className}
 		>
-			{availability.name}
+			{availability.availabilityName}
 		</Chip>
 	);
 }

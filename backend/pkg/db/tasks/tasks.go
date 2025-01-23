@@ -5,13 +5,13 @@ import (
 )
 
 type TaskDB struct {
-	ID   int `json:"id" db:"id" validate:"required"`
-	Task `valdate:"required" `
+	TaskID int `json:"taskID" db:"taskID" validate:"required"`
+	Task   `valdate:"required" `
 }
 
 type Task struct {
-	Name    string `json:"name" db:"name" validate:"required"`
-	Enabled bool   `json:"enabled" db:"enabled" validate:"required"`
+	TaskName string `json:"taskName" db:"taskName" validate:"required"`
+	Enabled  bool   `json:"enabled" db:"enabled" validate:"required"`
 }
 
 func GetSlice() ([]TaskDB, error) {
@@ -33,9 +33,9 @@ func GetMap() (map[int]Task, error) {
 		tasks := map[int]Task{}
 
 		for _, a := range tasksRaw {
-			tasks[a.ID] = Task{
-				Name:    a.Name,
-				Enabled: a.Enabled,
+			tasks[a.TaskID] = Task{
+				TaskName: a.TaskName,
+				Enabled:  a.Enabled,
 			}
 		}
 
@@ -44,19 +44,19 @@ func GetMap() (map[int]Task, error) {
 }
 
 func Add(t Task) error {
-	_, err := db.DB.NamedExec("INSERT INTO TASKS (name, enabled) VALUES (:name, :enabled)", &t)
+	_, err := db.DB.NamedExec("INSERT INTO TASKS (taskName, enabled) VALUES (:taskName, :enabled)", &t)
 
 	return err
 }
 
 func Update(t TaskDB) error {
-	_, err := db.DB.NamedExec("UPDATE TASKS set name = :name, enabled = :enabled WHERE id = :id", &t)
+	_, err := db.DB.NamedExec("UPDATE TASKS set taskName = :taskName, enabled = :enabled WHERE taskID = :taskID", &t)
 
 	return err
 }
 
 func Delete(i int) error {
-	_, err := db.DB.Exec("DELETE FROM TASKS WHERE id = $1", i)
+	_, err := db.DB.Exec("DELETE FROM TASKS WHERE taskID = $1", i)
 
 	return err
 }

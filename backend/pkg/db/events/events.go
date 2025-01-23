@@ -4,14 +4,30 @@ import (
 	"slices"
 
 	"github.com/johannesbuehl/golunteer/backend/pkg/db"
-	"github.com/johannesbuehl/golunteer/backend/pkg/db/assignments"
 	"github.com/johannesbuehl/golunteer/backend/pkg/db/availabilities"
 	"github.com/johannesbuehl/golunteer/backend/pkg/logger"
 )
 
+type EventData struct {
+	EventID     int    `db:"eventID" json:"eventID" validate:"required"`
+	Date        string `db:"date" json:"date" validate:"required"`
+	Description string `db:"description" json:"description"`
+}
+
+type EventPatch struct {
+	EventData
+	Tasks []int `json:"tasks" validate:"required,min=1"`
+}
+
+type EventAssignment struct {
+	TaskID   int     `db:"taskID" json:"taskID"`
+	TaskName string  `db:"taskName" json:"taskName"`
+	UserName *string `db:"userName" json:"userName"`
+}
+
 type EventWithAssignment struct {
-	eventDataDB
-	Tasks []assignments.EventAssignment `json:"tasks"`
+	EventData
+	Tasks []EventAssignment `json:"tasks"`
 }
 
 type EventWithAvailabilities struct {
@@ -19,32 +35,32 @@ type EventWithAvailabilities struct {
 	Availabilities map[string]string `json:"availabilities"`
 }
 
-type eventDataDB struct {
-	ID          int    `db:"id" json:"id" validate:"required"`
-	Date        string `db:"date" json:"date" validate:"required"`
+type EventCreate struct {
+	Date        string `db:"date" json:"date" validate:"required,datetime=2006-01-02T15:04:05.999999999Z"`
 	Description string `db:"description" json:"description"`
+	Tasks       []int  `json:"tasks" validate:"required,min=1"`
 }
 
 // transform the database-entry to an Event
-func (e eventDataDB) Event() (EventWithAssignment, error) {
+func (e EventData) Event() (EventWithAssignment, error) {
 	// get the assignments associated with the event
-	if assignemnts, err := assignments.Event(e.ID); err != nil {
+	if assignemnts, err := Assignments(e.EventID); err != nil {
 		return EventWithAssignment{}, err
 	} else {
 		return EventWithAssignment{
-			eventDataDB: e,
-			Tasks:       assignemnts,
+			EventData: e,
+			Tasks:     assignemnts,
 		}, nil
 	}
 }
 
-func (e eventDataDB) EventWithAvailabilities() (EventWithAvailabilities, error) {
+func (e EventData) EventWithAvailabilities() (EventWithAvailabilities, error) {
 	// get the event with assignments
 	if event, err := e.Event(); err != nil {
 		return EventWithAvailabilities{}, err
 
 		// get the availabilities
-	} else if availabilities, err := availabilities.Event(e.ID); err != nil {
+	} else if availabilities, err := availabilities.Event(e.EventID); err != nil {
 		return EventWithAvailabilities{}, err
 	} else {
 		return EventWithAvailabilities{
@@ -52,12 +68,6 @@ func (e eventDataDB) EventWithAvailabilities() (EventWithAvailabilities, error) 
 			Availabilities:      availabilities,
 		}, nil
 	}
-}
-
-type EventCreate struct {
-	Date        string `db:"date" json:"date" validate:"required,datetime=2006-01-02T15:04:05.999999999Z"`
-	Description string `db:"description" json:"description"`
-	Tasks       []int  `json:"tasks" validate:"required,min=1"`
 }
 
 func Create(event EventCreate) error {
@@ -86,7 +96,7 @@ func Create(event EventCreate) error {
 		// create the assignments
 		if _, err := db.DB.NamedExec("INSERT INTO USER_ASSIGNMENTS (eventID, taskID) VALUES (:eventID, :taskID)", tasks); err != nil {
 			// delete the event again
-			db.DB.Query("DELETE FROM EVENTS WHERE id = ?", id)
+			db.DB.Query("DELETE FROM EVENTS WHERE eventID = ?", id)
 
 			return err
 		}
@@ -95,25 +105,20 @@ func Create(event EventCreate) error {
 	return nil
 }
 
-type EventPatch struct {
-	eventDataDB
-	Tasks []int `json:"tasks" validate:"required,min=1"`
-}
-
 func Update(event EventPatch) error {
 	// update the event itself
-	if _, err := db.DB.NamedExec("UPDATE EVENTS SET description = :description, date = :date WHERE id = :id", event); err != nil {
+	if _, err := db.DB.NamedExec("UPDATE EVENTS SET description = :description, date = :date WHERE eventID = :id", event); err != nil {
 		return err
 
 		// get the tasks currently assigned to the event
 	} else {
 		type TaskID struct {
-			ID int `db:"taskID"`
+			TaskID int `db:"taskID"`
 		}
 
 		var taskRows []TaskID
 
-		if err := db.DB.Select(&taskRows, "SELECT taskID FROM USER_ASSIGNMENTS WHERE eventID = ?", event.ID); err != nil {
+		if err := db.DB.Select(&taskRows, "SELECT taskID FROM USER_ASSIGNMENTS WHERE eventID = $1", event.EventID); err != nil {
 			return err
 		} else {
 			type Task struct {
@@ -125,17 +130,17 @@ func Update(event EventPatch) error {
 			deleteRows := []Task{}
 
 			for _, row := range taskRows {
-				if !slices.Contains(event.Tasks, row.ID) {
-					deleteRows = append(deleteRows, Task{TaskID: row, EventID: event.ID})
+				if !slices.Contains(event.Tasks, row.TaskID) {
+					deleteRows = append(deleteRows, Task{TaskID: row, EventID: event.EventID})
 				}
 			}
 
 			// extract the rows that need to be created
 			createRows := []Task{}
 
-			for _, id := range event.Tasks {
-				if !slices.Contains(taskRows, TaskID{ID: id}) {
-					createRows = append(createRows, Task{TaskID: TaskID{ID: id}, EventID: event.ID})
+			for _, taskID := range event.Tasks {
+				if !slices.Contains(taskRows, TaskID{TaskID: taskID}) {
+					createRows = append(createRows, Task{TaskID: TaskID{TaskID: taskID}, EventID: event.EventID})
 				}
 			}
 
@@ -158,8 +163,8 @@ func Update(event EventPatch) error {
 	}
 }
 
-func All() ([]eventDataDB, error) {
-	var dbRows []eventDataDB
+func All() ([]EventData, error) {
+	var dbRows []EventData
 
 	if err := db.DB.Select(&dbRows, "SELECT * FROM EVENTS"); err != nil {
 		return nil, err
@@ -177,7 +182,7 @@ func WithAssignments() ([]EventWithAssignment, error) {
 
 		for ii, e := range eventsDB {
 			if ev, err := e.Event(); err != nil {
-				logger.Logger.Error().Msgf("can't get assignments for event with id = %d: %v", e.ID, err)
+				logger.Logger.Error().Msgf("can't get assignments for event with assignmentID = %d: %v", e.EventID, err)
 			} else {
 				events[ii] = ev
 			}
@@ -196,7 +201,7 @@ func WithAvailabilities() ([]EventWithAvailabilities, error) {
 
 		for ii, e := range eventsDB {
 			if ev, err := e.EventWithAvailabilities(); err != nil {
-				logger.Logger.Error().Msgf("can't get availabilities for event with id = %d: %v", e.ID, err)
+				logger.Logger.Error().Msgf("can't get availabilities for event with eventID = %d: %v", e.EventID, err)
 			} else {
 				events[ii] = ev
 			}
@@ -206,12 +211,22 @@ func WithAvailabilities() ([]EventWithAvailabilities, error) {
 	}
 }
 
-func UserPending(userName string) (int, error) {
+func UserPending(userName string) ([]EventData, error) {
+	var result []EventData
+
+	if err := db.DB.Select(&result, "SELECT eventID, date, description FROM EVENTS WHERE NOT EXISTS (SELECT 1 FROM USER_AVAILABILITIES WHERE USER_AVAILABILITIES.eventID = EVENTS.eventID AND USER_AVAILABILITIES.userName = ?)", userName); err != nil {
+		return nil, err
+	} else {
+		return result, nil
+	}
+}
+
+func UserPendingCount(userName string) (int, error) {
 	var result struct {
 		Count int `db:"count(*)"`
 	}
 
-	if err := db.DB.QueryRowx("SELECT count(*) FROM EVENTS WHERE NOT EXISTS (SELECT 1 FROM USER_AVAILABILITIES WHERE USER_AVAILABILITIES.eventID = EVENTS.id AND USER_AVAILABILITIES.userName = ?)", userName).StructScan(&result); err != nil {
+	if err := db.DB.QueryRowx("SELECT count(*) FROM EVENTS WHERE NOT EXISTS (SELECT 1 FROM USER_AVAILABILITIES WHERE USER_AVAILABILITIES.eventID = EVENTS.eventID AND USER_AVAILABILITIES.userName = ?)", userName).StructScan(&result); err != nil {
 		return 0, err
 	} else {
 		return result.Count, nil
@@ -219,7 +234,35 @@ func UserPending(userName string) (int, error) {
 }
 
 func Delete(eventId int) error {
-	_, err := db.DB.Exec("DELETE FROM EVENTS WHERE id = ?", eventId)
+	_, err := db.DB.Exec("DELETE FROM EVENTS WHERE eventID = ?", eventId)
 
 	return err
+}
+
+func Assignments(eventID int) ([]EventAssignment, error) {
+	// get the assignments from the database
+	var assignmentRows []EventAssignment
+
+	if err := db.DB.Select(&assignmentRows, "SELECT USERS.userName, TASKS.taskID, TASKS.taskName FROM USER_ASSIGNMENTS LEFT JOIN USERS ON USER_ASSIGNMENTS.userName = USERS.userName LEFT JOIN TASKS ON USER_ASSIGNMENTS.taskID = TASKS.taskID WHERE USER_ASSIGNMENTS.eventID = ?", eventID); err != nil {
+		return nil, err
+	} else {
+		return assignmentRows, nil
+	}
+}
+
+func User(userName string) ([]EventWithAssignment, error) {
+	// get all assignments of the user
+
+	// var events []EventWithAssignment
+	var events []struct {
+		EventData
+		TaskID   int    `db:"taskID"`
+		UserName string `db:"userName"`
+	}
+
+	if err := db.DB.Select(&events, "SELECT DISTINCT * FROM USER_ASSIGNMENTS INNER JOIN EVENTS ON USER_ASSIGNMENTS.eventID = EVENTS.eventID WHERE userName = $1", userName); err != nil {
+		return nil, err
+	} else {
+		return nil, nil
+	}
 }

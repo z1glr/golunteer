@@ -24,7 +24,7 @@ export default function EditEvent(props: {
 	return (
 		<EventEditor
 			value={props.value}
-			key={props.value?.id}
+			key={props.value?.eventID}
 			header="Edit Event"
 			isOpen={props.isOpen}
 			onOpenChange={props.onOpenChange}

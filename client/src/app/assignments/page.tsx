@@ -62,8 +62,8 @@ export default function AdminPanel() {
 					...tasks
 						.filter((task) => task.enabled)
 						.map((task) => ({
-							label: task.name,
-							key: task.id ?? -1,
+							label: task.taskName,
+							key: task.taskID ?? -1,
 							align: "center",
 						})),
 					{ key: "actions", label: "Action", align: "center" },
@@ -116,7 +116,9 @@ export default function AdminPanel() {
 	// send a delete request to the backend and close the popup on success
 	async function sendDeleteEvent() {
 		if (deleteEvent !== undefined) {
-			const result = await apiCall("DELETE", "event", { id: deleteEvent.id });
+			const result = await apiCall("DELETE", "event", {
+				eventID: deleteEvent.eventID,
+			});
 
 			if (result.ok) {
 				// store the received events
@@ -262,7 +264,7 @@ export default function AdminPanel() {
 				</TableHeader>
 				<TableBody items={events.items} emptyContent={"No events scheduled"}>
 					{(event) => (
-						<TableRow key={event.id}>
+						<TableRow key={event.eventID}>
 							{(columnKey) => (
 								<TableCell>{getKeyValue(event, columnKey)}</TableCell>
 							)}

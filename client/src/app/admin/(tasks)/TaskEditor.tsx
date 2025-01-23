@@ -1,4 +1,4 @@
-import { Task } from "@/lib";
+import { AllString, Task } from "@/lib";
 import {
 	Checkbox,
 	Form,
@@ -19,7 +19,7 @@ export default function TaskEditor(props: {
 	onOpenChange?: (isOpen: boolean) => void;
 	onSubmit?: (e: Task) => void;
 }) {
-	const [name, setName] = useState(props.value?.name ?? "");
+	const [name, setName] = useState(props.value?.taskName ?? "");
 	const [enabled, setEnabled] = useState(props.value?.enabled ?? true);
 
 	// clear the inputs on closing
@@ -31,14 +31,13 @@ export default function TaskEditor(props: {
 	}, [props.isOpen]);
 
 	function submit(e: FormEvent<HTMLFormElement>) {
-		const formData = Object.fromEntries(new FormData(e.currentTarget)) as {
-			name: string;
-			enabled: string;
-		};
+		const formData = Object.fromEntries(
+			new FormData(e.currentTarget),
+		) as AllString<Exclude<Task, "taskID">>;
 
 		props.onSubmit?.({
 			...formData,
-			id: props.value?.id,
+			taskID: props.value?.taskID,
 			enabled: formData.enabled == "true",
 		});
 	}
@@ -68,7 +67,7 @@ export default function TaskEditor(props: {
 						<Input
 							value={name}
 							onValueChange={setName}
-							name="name"
+							name="taskName"
 							label="Name"
 							isRequired
 							variant="bordered"

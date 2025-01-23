@@ -27,32 +27,33 @@ type responseMessage struct {
 }
 
 // answer the client request with the response-message
-func (result responseMessage) send(c *fiber.Ctx) error {
+func (a *Handler) send(c *fiber.Ctx) error {
 	// if the status-code is in the error-region, return an error
-	if result.Status >= 400 {
+	if a.Status >= 400 {
 		// if available, include the message
-		if result.Message != "" {
-			return fiber.NewError(result.Status, result.Message)
+		if a.Message != "" {
+			return fiber.NewError(a.Status, a.Message)
 		} else {
-			return fiber.NewError(result.Status)
+			return fiber.NewError(a.Status)
 		}
 	} else {
 		// if there is data, send it as JSON
-		if result.Data != nil {
-			c.JSON(result.Data)
+		if a.Data != nil {
+			c.JSON(a.Data)
 
 			// if there is a message, send it instead
-		} else if result.Message != "" {
-			c.SendString(result.Message)
+		} else if a.Message != "" {
+			c.SendString(a.Message)
 		}
 
-		return c.SendStatus(result.Status)
+		return c.SendStatus(a.Status)
 	}
 }
 
-type HandlerArgs struct {
-	C    *fiber.Ctx
-	User UserChecked
+type Handler struct {
+	C *fiber.Ctx
+	UserChecked
+	responseMessage
 }
 
 func init() {
@@ -74,35 +75,45 @@ func init() {
 	}
 
 	// map with the individual registered endpoints
-	endpoints := map[string]map[string]func(HandlerArgs) responseMessage{
+	endpoints := map[string]map[string]func(*Handler){
 		"GET": {
-			"events/assignments":    getEventsAssignments,
-			"events/availabilities": getEventsAvailabilities,
-			"events/user/pending":   getEventsUserPending,
-			"tasks":                 getTasks,
-			"users":                 getUsers,
-			"availabilities":        getAvailabilities,
+			// all events with the task-assignments
+			"events/assignments": (*Handler).getEventsAssignments,
+
+			// all events with the availabilities of the individual users
+			"events/availabilities": (*Handler).getEventsAvailabilities,
+
+			// events the user has to enter his availability for
+			"events/user/pending": (*Handler).getEventsUserPending,
+
+			// number of events the user has to enter his availability for
+			"events/user/pending/count": (*Handler).getEventsUserPendingCount,
+
+			"events/user/assigned": (*Handler).getEventsUserAssigned,
+			"tasks":                (*Handler).getTasks,          // all available tasks
+			"users":                (*Handler).getUsers,          // all users
+			"availabilities":       (*Handler).getAvailabilities, // all available availabilities
 		},
 		"POST": {
-			"events":         postEvent,
-			"users":          postUser,
-			"availabilities": postAvailability,
-			"tasks":          postTask,
+			"events":         (*Handler).postEvent,        // create an event
+			"users":          (*Handler).postUser,         // add an user
+			"availabilities": (*Handler).postAvailability, // add an availability
+			"tasks":          (*Handler).postTask,         // add a task
 		},
 		"PATCH": {
-			"users":          patchUser,
-			"events":         patchEvent,
-			"availabilities": patchAvailabilitiy,
-			"tasks":          patchTask,
+			"users":          (*Handler).patchUser,          // modify an user
+			"events":         (*Handler).patchEvent,         // modify an event
+			"availabilities": (*Handler).patchAvailabilitiy, // modify an availability
+			"tasks":          (*Handler).patchTask,          // modify a task
 		},
 		"PUT": {
-			"users/password": putPassword,
+			"users/password": (*Handler).putPassword, // change the password
 		},
 		"DELETE": {
-			"event":          deleteEvent,
-			"tasks":          deleteTask,
-			"availabilities": deleteAvailability,
-			"users":          deleteUser,
+			"event":          (*Handler).deleteEvent,        // remove an event
+			"tasks":          (*Handler).deleteTask,         // remove a task
+			"availabilities": (*Handler).deleteAvailability, // remove an availability
+			"users":          (*Handler).deleteUser,         // remove an user
 		},
 	}
 
@@ -117,28 +128,23 @@ func init() {
 			handleMethods[method]("/api/"+address, func(c *fiber.Ctx) error {
 				logger.Debug().Msgf("HTTP %s request: %q", c.Method(), c.OriginalURL())
 
-				var response responseMessage
-				args := HandlerArgs{
+				args := Handler{
 					C: c,
 				}
 
 				if loggedIn, err := args.checkUser(); err != nil {
-					response = responseMessage{
-						Status: fiber.StatusBadRequest,
-					}
+					args.Status = fiber.StatusBadRequest
 
 					logger.Error().Msgf("can't check user: %v", err)
 				} else if !loggedIn {
-					response = responseMessage{
-						Status: fiber.StatusUnauthorized,
-					}
+					args.Status = fiber.StatusUnauthorized
 
 					logger.Log().Msgf("user not authorized")
-				} else {
-					response = handler(args)
 				}
 
-				return response.send(c)
+				handler(&args)
+
+				return args.send(c)
 			})
 		}
 	}
@@ -151,7 +157,7 @@ func Listen() {
 	fmt.Println(err)
 }
 
-func (args HandlerArgs) setSessionCookie(jwt *string) {
+func (args Handler) setSessionCookie(jwt *string) {
 	var value string
 
 	if jwt == nil {
@@ -170,7 +176,7 @@ func (args HandlerArgs) setSessionCookie(jwt *string) {
 }
 
 // removes the session-coockie from a request
-func (args HandlerArgs) removeSessionCookie() {
+func (args Handler) removeSessionCookie() {
 	args.C.Cookie(&fiber.Cookie{
 		Name:     "session",
 		Value:    "",
@@ -233,7 +239,7 @@ type UserChecked struct {
 }
 
 // checks wether the request is from a valid user
-func (args *HandlerArgs) checkUser() (bool, error) {
+func (args *Handler) checkUser() (bool, error) {
 	userName, tokenID, err := extractJWT(args.C)
 
 	if err != nil {
@@ -246,7 +252,7 @@ func (args *HandlerArgs) checkUser() (bool, error) {
 	}
 
 	// retrieve the user from the database
-	if err := db.DB.Get(&dbResult, "SELECT tokenID, admin FROM USERS WHERE name = ?", userName); err != nil {
+	if err := db.DB.Get(&dbResult, "SELECT tokenID, admin FROM USERS WHERE userName = ?", userName); err != nil {
 		return false, err
 
 		// if the tokenID is valid, the user is authorized
@@ -256,11 +262,9 @@ func (args *HandlerArgs) checkUser() (bool, error) {
 		// reset the expiration of the cookie
 		args.setSessionCookie(nil)
 
-		args.User = UserChecked{
-			UserName: userName,
-			Admin:    dbResult.Admin,
-		}
-		return true, nil
-
+		args.UserName = userName
+		args.Admin = dbResult.Admin
 	}
+	return true, nil
+
 }

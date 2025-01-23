@@ -8,33 +8,32 @@ import (
 
 // handle welcome-messages from clients
 func handleWelcome(c *fiber.Ctx) error {
+	args := Handler{C: c}
+
 	logger.Debug().Msgf("HTTP %s request: %q", c.Method(), c.OriginalURL())
 
-	response := responseMessage{}
-	response.Data = UserChecked{
+	args.Data = UserChecked{
 		Admin: false,
 	}
 
-	args := HandlerArgs{C: c}
-
 	if loggedIn, err := args.checkUser(); err != nil {
-		response.Status = fiber.StatusInternalServerError
+		args.Status = fiber.StatusInternalServerError
 
 		logger.Warn().Msgf("can't check user: %v", err)
 	} else if !loggedIn {
-		response.Status = fiber.StatusUnauthorized
+		args.Status = fiber.StatusUnauthorized
 
 		logger.Debug().Msgf("user not authorized")
 	} else {
-		response.Data = UserChecked{
-			UserName: args.User.UserName,
-			Admin:    args.User.Admin,
+		args.Data = UserChecked{
+			UserName: args.UserName,
+			Admin:    args.Admin,
 		}
 
-		logger.Debug().Msgf("welcomed user %q", args.User.UserName)
+		logger.Debug().Msgf("welcomed user %q", args.UserName)
 	}
 
-	return response.send(c)
+	return args.send(c)
 }
 
 const messageWrongLogin = "Unkown user or wrong password"
@@ -42,7 +41,7 @@ const messageWrongLogin = "Unkown user or wrong password"
 func handleLogin(c *fiber.Ctx) error {
 	logger.Debug().Msgf("HTTP %s request: %q", c.Method(), c.OriginalURL())
 
-	args := HandlerArgs{C: c}
+	args := Handler{C: c}
 
 	// extract username and password from the request
 	requestBody := struct {
@@ -50,12 +49,10 @@ func handleLogin(c *fiber.Ctx) error {
 		Password string `json:"password" validate:"required"`
 	}{}
 
-	var response responseMessage
-
 	if err := args.C.BodyParser(&requestBody); err != nil {
 		logger.Debug().Msgf("can't parse login-body: %v", err)
 
-		response.Status = fiber.StatusBadRequest
+		args.Status = fiber.StatusBadRequest
 
 		// validate the body
 	} else if err := validate.Struct(requestBody); err != nil {
@@ -63,29 +60,29 @@ func handleLogin(c *fiber.Ctx) error {
 	} else {
 		// query the database for the user
 		var result userDB
-		if err := db.DB.QueryRowx("SELECT password, admin, tokenID FROM USERS WHERE name = ?", requestBody.Username).StructScan(&result); err != nil {
-			response.Status = fiber.StatusForbidden
-			response.Message = messageWrongLogin
+		if err := db.DB.QueryRowx("SELECT password, admin, tokenID FROM USERS WHERE userName = ?", requestBody.Username).StructScan(&result); err != nil {
+			args.Status = fiber.StatusForbidden
+			args.Message = messageWrongLogin
 
-			logger.Info().Msgf("can't get user with name = %q from database", requestBody.Username)
+			logger.Info().Msgf("can't get user with userName = %q from database", requestBody.Username)
 		} else {
 			// hash the password
 			if bcrypt.CompareHashAndPassword(result.Password, []byte(requestBody.Password)) != nil {
-				response.Status = fiber.StatusForbidden
+				args.Status = fiber.StatusForbidden
 
-				logger.Info().Msgf("login denied: wrong password for user with name = %q", requestBody.Username)
+				logger.Info().Msgf("login denied: wrong password for user with userName = %q", requestBody.Username)
 			} else {
 				// password is correct -> generate the JWT
 				if jwt, err := config.SignJWT(JWTPayload{
 					UserName: requestBody.Username,
 					TokenID:  result.TokenID,
 				}); err != nil {
-					response.Status = fiber.StatusInternalServerError
+					args.Status = fiber.StatusInternalServerError
 					logger.Error().Msgf("can't create JWT: %v", err)
 				} else {
 					args.setSessionCookie(&jwt)
 
-					response.Data = UserChecked{
+					args.Data = UserChecked{
 						UserName: requestBody.Username,
 						Admin:    true,
 					}
@@ -96,18 +93,18 @@ func handleLogin(c *fiber.Ctx) error {
 		}
 	}
 
-	return response.send(args.C)
+	return args.send(args.C)
 }
 
 // handles logout-requests
 func handleLogout(c *fiber.Ctx) error {
 	logger.Debug().Msgf("HTTP %s request: %q", c.Method(), c.OriginalURL())
 
-	args := HandlerArgs{
+	args := Handler{
 		C: c,
 	}
 
 	args.removeSessionCookie()
 
-	return responseMessage{}.send(c)
+	return args.send(c)
 }

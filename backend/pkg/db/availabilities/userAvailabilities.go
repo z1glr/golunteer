@@ -24,7 +24,7 @@ func Event(eventID int) (map[string]string, error) {
 			return nil, err
 		} else {
 			for _, a := range availabilitiesRows {
-				eventAvailabilities[a.UserName] = availabilitiesMap[a.AvailabilityID].Name
+				eventAvailabilities[a.UserName] = availabilitiesMap[a.AvailabilityID].AvailabilityName
 			}
 
 			return eventAvailabilities, nil

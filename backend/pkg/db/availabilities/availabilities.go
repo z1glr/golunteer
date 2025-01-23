@@ -5,24 +5,24 @@ import (
 )
 
 type AvailabilityDB struct {
-	Id           int `db:"id" json:"id" validate:"required"`
-	Availability `validate:"required"`
+	AvailabilityID int `db:"availabilityID" json:"availabilityID" validate:"required"`
+	Availability   `validate:"required"`
 }
 
 type Availability struct {
-	Name    string `db:"name" json:"name" validate:"required"`
-	Enabled bool   `db:"enabled" json:"enabled" validate:"required"`
-	Color   string `db:"color" json:"color" validate:"required"`
+	AvailabilityName string `db:"availabilityName" json:"availabilityName" validate:"required"`
+	Enabled          bool   `db:"enabled" json:"enabled"`
+	Color            string `db:"color" json:"color" validate:"required"`
 }
 
 func Add(a Availability) error {
-	_, err := db.DB.NamedExec("INSERT INTO AVAILABILITIES (name, color, enabled) VALUES (:name, :color, :enabled)", a)
+	_, err := db.DB.NamedExec("INSERT INTO AVAILABILITIES (availabilityName, color, enabled) VALUES (:availabilityName, :color, :enabled)", a)
 
 	return err
 }
 
 func Update(a AvailabilityDB) error {
-	_, err := db.DB.NamedExec("UPDATE AVAILABILITIES SET name = :name, color = :color, enabled = :enabled WHERE id = :id", a)
+	_, err := db.DB.NamedExec("UPDATE AVAILABILITIES SET availabilityName = :availabilityName, color = :color, enabled = :enabled WHERE availabilityID = :availabilityID", a)
 
 	return err
 }
@@ -46,10 +46,10 @@ func Keys() (map[int]Availability, error) {
 		availabilities := map[int]Availability{}
 
 		for _, a := range availabilitiesRaw {
-			availabilities[a.Id] = Availability{
-				Name:    a.Name,
-				Enabled: a.Enabled,
-				Color:   a.Color,
+			availabilities[a.AvailabilityID] = Availability{
+				AvailabilityName: a.AvailabilityName,
+				Enabled:          a.Enabled,
+				Color:            a.Color,
 			}
 		}
 
@@ -58,7 +58,7 @@ func Keys() (map[int]Availability, error) {
 }
 
 func Delete(id int) error {
-	_, err := db.DB.Exec("DELETE FROM AVAILABILITIES WHERE id = $1", id)
+	_, err := db.DB.Exec("DELETE FROM AVAILABILITIES WHERE availabilityID = $1", id)
 
 	return err
 }

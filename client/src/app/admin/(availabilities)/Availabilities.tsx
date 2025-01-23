@@ -40,7 +40,7 @@ export default function Availabilities() {
 
 					switch (sortDescriptor.column) {
 						case "text":
-							cmp = a.name.localeCompare(b.name);
+							cmp = a.availabilityName.localeCompare(b.availabilityName);
 							break;
 						case "enabled":
 							if (a.enabled && !b.enabled) {
@@ -78,9 +78,11 @@ export default function Availabilities() {
 		availabilities.reload();
 	}
 
-	async function sendDeleteAvailability(id: number | undefined) {
-		if (id !== undefined) {
-			const result = await apiCall("DELETE", "availabilities", { id });
+	async function sendDeleteAvailability(availabilityID: number | undefined) {
+		if (availabilityID !== undefined) {
+			const result = await apiCall("DELETE", "availabilities", {
+				availabilityID,
+			});
 
 			if (result.ok) {
 				reload();
@@ -133,7 +135,7 @@ export default function Availabilities() {
 				</TableHeader>
 				<TableBody items={availabilities.items}>
 					{(availability) => (
-						<TableRow key={availability.name}>
+						<TableRow key={availability.availabilityName}>
 							<TableCell>
 								<AvailabilityChip availability={availability} />
 							</TableCell>
@@ -190,7 +192,9 @@ export default function Availabilities() {
 					!isOpen ? setDeleteAvailability(undefined) : null
 				}
 				itemName="Availability"
-				onDelete={() => sendDeleteAvailability(deleteAvailability?.id)}
+				onDelete={() =>
+					sendDeleteAvailability(deleteAvailability?.availabilityID)
+				}
 			>
 				{!!deleteAvailability ? (
 					<>

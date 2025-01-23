@@ -5,144 +5,138 @@ import (
 	"github.com/johannesbuehl/golunteer/backend/pkg/db/events"
 )
 
-func postEvent(args HandlerArgs) responseMessage {
-	response := responseMessage{}
-
+func (a *Handler) postEvent() {
 	// check admin
-	if !args.User.Admin {
-		response.Status = fiber.StatusForbidden
+	if !a.Admin {
+		a.Status = fiber.StatusForbidden
 	} else {
 
 		// write the event
 		var body events.EventCreate
 
 		// try to parse the body
-		if err := args.C.BodyParser(&body); err != nil {
-			response.Status = fiber.StatusBadRequest
+		if err := a.C.BodyParser(&body); err != nil {
+			a.Status = fiber.StatusBadRequest
 
 			logger.Log().Msgf("can't parse body: %v", err)
 
 			// validate the parsed body
 		} else if err := validate.Struct(body); err != nil {
-			response.Status = fiber.StatusBadRequest
+			a.Status = fiber.StatusBadRequest
 
 			logger.Log().Msgf("invalid body: %v", err)
 
 			// create the event
 		} else if err := events.Create(body); err != nil {
-			response.Status = fiber.StatusInternalServerError
+			a.Status = fiber.StatusInternalServerError
 
 			logger.Error().Msgf("can't create event: %v", err)
 		}
 	}
-
-	return response
 }
 
-func patchEvent(args HandlerArgs) responseMessage {
-	response := responseMessage{}
-
+func (a *Handler) patchEvent() {
 	// check admin
-	if !args.User.Admin {
-		response.Status = fiber.StatusForbidden
+	if !a.Admin {
+		a.Status = fiber.StatusForbidden
 	} else {
 		// parse the body
 		var body events.EventPatch
 
-		if err := args.C.BodyParser(&body); err != nil {
-			response.Status = fiber.StatusBadRequest
+		if err := a.C.BodyParser(&body); err != nil {
+			a.Status = fiber.StatusBadRequest
 
 			logger.Log().Msgf("can't parse body: %v", err)
 
 			// validate the body
 		} else if err := validate.Struct(body); err != nil {
-			response.Status = fiber.StatusBadRequest
+			a.Status = fiber.StatusBadRequest
 
 			logger.Log().Msgf("ivnalid body: %v", err)
 
 			// update the event
 		} else if err := events.Update(body); err != nil {
-			response.Status = fiber.StatusInternalServerError
+			a.Status = fiber.StatusInternalServerError
 
 			logger.Error().Msgf("updating the event failed: %v", err)
 		}
 	}
-	return response
 }
 
-func getEventsAssignments(args HandlerArgs) responseMessage {
-	response := responseMessage{}
-
+func (a *Handler) getEventsAssignments() {
 	if events, err := events.WithAssignments(); err != nil {
-		response.Status = fiber.StatusInternalServerError
+		a.Status = fiber.StatusInternalServerError
 
 		logger.Error().Msgf("can't retrieve events with assignments: %v", err)
 	} else {
-		response.Data = events
+		a.Data = events
 	}
-
-	return response
 }
 
-func getEventsAvailabilities(args HandlerArgs) responseMessage {
-	response := responseMessage{}
-
+func (a *Handler) getEventsAvailabilities() {
 	// check for admin
-	if !args.User.Admin {
-		response.Status = fiber.StatusForbidden
+	if !a.Admin {
+		a.Status = fiber.StatusForbidden
 	} else {
 		if events, err := events.WithAvailabilities(); err != nil {
-			response.Status = fiber.StatusInternalServerError
+			a.Status = fiber.StatusInternalServerError
 
 			logger.Error().Msgf("can't retrieve events with availabilities: %v", err)
 		} else {
-			response.Data = events
+			a.Data = events
 		}
 	}
-
-	return response
 }
 
-func getEventsUserPending(args HandlerArgs) responseMessage {
-	response := responseMessage{}
+func (a *Handler) getEventsUserPending() {
+	if events, err := events.UserPending(a.UserName); err != nil {
+		a.Status = fiber.StatusInternalServerError
 
-	if count, err := events.UserPending(args.User.UserName); err != nil {
-		response.Status = fiber.StatusInternalServerError
-
-		logger.Warn().Msgf("can't query database for users %q pending events: %v", args.User.UserName, err)
+		logger.Warn().Msgf("can't query database for users %q pending events: %v", a.UserName, err)
 	} else {
-		response.Data = count
+		a.Data = events
 	}
-
-	return response
 }
 
-func deleteEvent(args HandlerArgs) responseMessage {
+func (a *Handler) getEventsUserPendingCount() {
+	if count, err := events.UserPendingCount(a.UserName); err != nil {
+		a.Status = fiber.StatusInternalServerError
+
+		logger.Warn().Msgf("can't query database for users %q pending events: %v", a.UserName, err)
+	} else {
+		a.Data = count
+	}
+}
+
+func (a *Handler) getEventsUserAssigned() {
+	// retrieve the events from the database
+	if events, err := events.User(a.UserName); err != nil {
+		a.Status = fiber.StatusBadRequest
+
+		logger.Log().Msgf("retrieval of user-assigned-events failed: %v", err)
+	} else {
+		a.Data = events
+	}
+}
+
+func (a *Handler) deleteEvent() {
 	// check for admin
-	if !args.User.Admin {
+	if !a.Admin {
 
 		logger.Warn().Msg("event-delete failed: user is no admin")
 
-		return responseMessage{
-			Status: fiber.StatusForbidden,
-		}
+		a.Status = fiber.StatusForbidden
 		// -1 can't be valid
-	} else if eventId := args.C.QueryInt("id", -1); eventId == -1 {
-		logger.Log().Msgf("event-delete failed: \"id\" is missing in query")
+	} else if eventId := a.C.QueryInt("eventID", -1); eventId == -1 {
+		logger.Log().Msgf("event-delete failed: \"eventID\" is missing in query")
 
-		return responseMessage{
-			Status: fiber.StatusBadRequest,
-		}
+		a.Status = fiber.StatusBadRequest
 	} else if err := events.Delete(eventId); err != nil {
 
 		logger.Error().Msgf("event-delete failed: can't delete from database: %v", err)
 
-		return responseMessage{
-			Status: fiber.StatusInternalServerError,
-		}
+		a.Status = fiber.StatusInternalServerError
 	} else {
-		logger.Log().Msgf("deleted event with id %d", eventId)
-
-		return responseMessage{}
+		logger.Log().Msgf("deleted event with eventID %d", eventId)
 	}
 }

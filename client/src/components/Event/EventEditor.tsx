@@ -18,10 +18,12 @@ import {
 	Spinner,
 	Textarea,
 } from "@heroui/react";
-import zustand, { EventData } from "@/Zustand";
+import { EventData } from "@/Zustand";
+import { useAsyncList } from "@react-stately/data";
+import { getTasks } from "@/lib";
 
 export interface EventSubmitData {
-	id: number;
+	eventID: number;
 	date: string;
 	description: string;
 	tasks: number[];
@@ -47,12 +49,19 @@ export default function EventEditor(props: {
 	const [eventTasks, setEventTasks] = useState<string[]>(
 		props.value?.tasks.map((k) => k.taskID.toString()) ?? [],
 	);
-	const tasks = zustand((state) => state.tasks);
+
+	const tasks = useAsyncList({
+		async load() {
+			return {
+				items: await getTasks(),
+			};
+		},
+	});
 
 	function onSubmit() {
 		if (!!props.onSubmit && !!date) {
 			props.onSubmit({
-				id: props.value?.id ?? -1,
+				eventID: props.value?.eventID ?? -1,
 				date: date.toAbsoluteString(),
 				description,
 				tasks: eventTasks.map((t) => parseInt(t)),
@@ -109,12 +118,12 @@ export default function EventEditor(props: {
 							}
 						>
 							{!!tasks ? (
-								tasks
+								tasks.items
 									?.filter((task) => task.enabled)
 									.map((task) => (
-										<div key={task.id}>
-											<Checkbox value={task.id?.toString()}>
-												{task.name}
+										<div key={task.taskID}>
+											<Checkbox value={task.taskID?.toString()}>
+												{task.taskName}
 											</Checkbox>
 										</div>
 									))

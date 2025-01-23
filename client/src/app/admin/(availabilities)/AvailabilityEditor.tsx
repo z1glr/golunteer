@@ -1,4 +1,5 @@
 import ColorSelector from "@/components/Colorselector";
+import { AllString } from "@/lib";
 import {
 	Checkbox,
 	Form,
@@ -12,9 +13,9 @@ import {
 import React, { FormEvent, useEffect, useState } from "react";
 
 export interface Availability {
-	name: string;
+	availabilityName: string;
 	color: string;
-	id: number | undefined;
+	availabilityID: number | undefined;
 	enabled: boolean;
 }
 
@@ -26,7 +27,7 @@ export default function AvailabilityEditor(props: {
 	onOpenChange?: (isOpen: boolean) => void;
 	onSubmit?: (e: Availability) => void;
 }) {
-	const [name, setName] = useState(props.value?.name ?? "");
+	const [name, setName] = useState(props.value?.availabilityName ?? "");
 	const [color, setColor] = useState(props.value?.color ?? "Red");
 	const [enabled, setEnabled] = useState(props.value?.enabled ?? true);
 
@@ -40,15 +41,13 @@ export default function AvailabilityEditor(props: {
 	}, [props.isOpen]);
 
 	function submit(e: FormEvent<HTMLFormElement>) {
-		const formData = Object.fromEntries(new FormData(e.currentTarget)) as {
-			name: string;
-			color: string;
-			enabled: string;
-		};
+		const formData = Object.fromEntries(
+			new FormData(e.currentTarget),
+		) as AllString<Exclude<Availability, "availabilityID">>;
 
 		props.onSubmit?.({
 			...formData,
-			id: props.value?.id,
+			availabilityID: props.value?.availabilityID,
 			enabled: formData.enabled == "true",
 		});
 	}
@@ -77,7 +76,7 @@ export default function AvailabilityEditor(props: {
 						<Input
 							value={name}
 							onValueChange={setName}
-							name="name"
+							name="availabilityName"
 							label="Name"
 							isRequired
 							variant="bordered"

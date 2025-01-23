@@ -1,5 +1,5 @@
-import EventVolunteer from "./Overview";
+import Overview from "./Overview";
 
 export default function Home() {
-	return <EventVolunteer />;
+	return <Overview />;
 }

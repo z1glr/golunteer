@@ -1,4 +1,8 @@
-import { classNames, validatePassword as validatePassword } from "@/lib";
+import {
+	AllString,
+	classNames,
+	validatePassword as validatePassword,
+} from "@/lib";
 import zustand, { User, UserAddModify } from "@/Zustand";
 import {
 	Checkbox,
@@ -29,11 +33,9 @@ export default function UserEditor(props: {
 
 	// update the user in the backend
 	async function submit(e: FormEvent<HTMLFormElement>) {
-		const formData = Object.fromEntries(new FormData(e.currentTarget)) as {
-			userName: string;
-			password: string;
-			admin: string;
-		};
+		const formData = Object.fromEntries(
+			new FormData(e.currentTarget),
+		) as AllString<UserAddModify>;
 
 		const data = {
 			...formData,

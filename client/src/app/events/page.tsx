@@ -15,12 +15,10 @@ export default function Events() {
 
 	const events = useAsyncList<EventData>({
 		async load() {
-			const result = await apiCall("GET", "events/assignments");
+			const result = await apiCall<EventData[]>("GET", "events/assignments");
 
 			if (result.ok) {
 				const data = await result.json();
-
-				console.debug(data);
 
 				return {
 					items: data,
@@ -62,6 +60,7 @@ export default function Events() {
 						className="border-2 border-accent-3"
 						isOpen={showAddItemDialogue}
 						onOpenChange={setShowAddItemDialogue}
+						onSuccess={events.reload}
 					/>
 				</>
 			) : null}

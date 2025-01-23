@@ -31,7 +31,7 @@ func init() {
 		var admin struct {
 			Admin bool `db:"admin"`
 		}
-		if err := DB.QueryRowx("SELECT admin FROM USERS WHERE name = 'admin'").StructScan(&admin); err != nil {
+		if err := DB.QueryRowx("SELECT admin FROM USERS WHERE userName = 'admin'").StructScan(&admin); err != nil {
 			// if the error isn't because there was no result, it's a real one
 			if err != sql.ErrNoRows {
 				panic(fmt.Errorf("can't query for the admin-user: %v", err))

@@ -20,12 +20,12 @@ export default function EditTask(props: {
 
 	return (
 		<TaskEditor
-			key={props.value?.name}
+			key={props.value?.taskName}
 			header={
 				<>
 					Edit Task{" "}
 					<span className="font-numbers font-normal italic">
-						&quot;{props.value?.name}&quot;
+						&quot;{props.value?.taskName}&quot;
 					</span>
 				</>
 			}

@@ -1,16 +1,18 @@
 "use client";
 
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
 import { Task } from "./lib";
 import { Availability } from "./app/admin/(availabilities)/AvailabilityEditor";
 
-export interface EventData {
-	id: number;
+export interface BaseEvent {
+	eventID: number;
 	date: string;
-	tasks: TaskAssignment[];
 	description: string;
 }
+
+export type EventData = BaseEvent & {
+	tasks: TaskAssignment[];
+};
 
 interface TaskAssignment {
 	taskID: number;
@@ -40,28 +42,27 @@ const initialState = {
 };
 
 const zustand = create<Zustand>()(
-	persist(
-		(set, get) => ({
-			...initialState,
-			reset: (newZustand) => {
-				console.debug("reset");
-				set({
-					...initialState,
-					...newZustand,
-				});
-			},
-			patch: (patch) => set({ ...get(), ...patch }),
-		}),
-		{
-			name: "golunteer-storage",
-			partialize: (state) =>
-				Object.fromEntries(
-					Object.entries(state).filter(([key]) =>
-						["user", "tasksList", "tasksMap"].includes(key),
-					),
-				),
+	// persist(
+	(set, get) => ({
+		...initialState,
+		reset: (newZustand) => {
+			set({
+				...initialState,
+				...newZustand,
+			});
 		},
-	),
+		patch: (patch) => set({ ...get(), ...patch }),
+	}),
+	// {
+	// 	name: "golunteer-storage",
+	// 	partialize: (state) =>
+	// 		Object.fromEntries(
+	// 			Object.entries(state).filter(([key]) =>
+	// 				["user", "tasksList", "tasksMap"].includes(key),
+	// 			),
+	// 		),
+	// },
+	// ),
 );
 
 export default zustand;

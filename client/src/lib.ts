@@ -2,30 +2,32 @@ import { DateFormatter as IntlDateFormatter } from "@internationalized/date";
 import zustand from "./Zustand";
 import { Availability } from "./app/admin/(availabilities)/AvailabilityEditor";
 
+export type AllString<T> = { [K in keyof T]: string };
+
 type QueryParams = Record<string, string | { toString(): string }>;
 
-export type APICallResult<T extends object> = Response & {
+export type APICallResult<T> = Omit<Response, "json"> & {
 	json: () => Promise<T>;
 };
 
-export async function apiCall<K extends object>(
+export async function apiCall<K>(
 	method: "GET",
 	api: string,
 	query?: QueryParams,
 ): Promise<APICallResult<K>>;
-export async function apiCall<K extends object>(
+export async function apiCall<K>(
 	method: "POST" | "PATCH" | "PUT",
 	api: string,
 	query?: QueryParams,
 	body?: object,
 ): Promise<APICallResult<K>>;
-export async function apiCall<K extends object>(
+export async function apiCall<K>(
 	method: "DELETE",
 	api: string,
 	query?: QueryParams,
 	body?: object,
 ): Promise<APICallResult<K>>;
-export async function apiCall<K extends object>(
+export async function apiCall<K>(
 	method: "GET" | "POST" | "PATCH" | "PUT" | "DELETE",
 	api: string,
 	query?: QueryParams,
@@ -96,8 +98,8 @@ export function validatePassword(password: string): string[] {
 }
 
 export interface Task {
-	id: number | undefined;
-	name: string;
+	taskID: number | undefined;
+	taskName: string;
 	enabled: boolean;
 }
 
@@ -105,7 +107,7 @@ export async function getTask(name: string): Promise<Task | undefined> {
 	// get the tasks
 	const tasks = await getTasks();
 
-	return tasks.find((t) => t.name === name);
+	return tasks.find((t) => t.taskName === name);
 }
 
 export async function getTasks(): Promise<Task[]> {
@@ -136,7 +138,7 @@ export async function getAvailabilities(): Promise<Availability[]> {
 	if (!!state.availabilities) {
 		return state.availabilities;
 	} else {
-		const result = await apiCall<Task[]>("GET", "availabilities");
+		const result = await apiCall<Availability[]>("GET", "availabilities");
 
 		if (result.ok) {
 			const tasks = await result.json();

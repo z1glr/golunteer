@@ -30,10 +30,7 @@ export default function Header({ sites }: { sites: SiteLink[] }) {
 
 	useEffect(() => {
 		(async () => {
-			const result = await apiCall<{ pendingEvents: number }>(
-				"GET",
-				"events/user/pending",
-			);
+			const result = await apiCall<number>("GET", "events/user/pending/count");
 
 			if (result.ok) {
 				setPendingEvents(await result.json());
