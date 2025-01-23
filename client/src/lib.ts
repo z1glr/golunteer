@@ -6,6 +6,8 @@ export type AllString<T> = { [K in keyof T]: string };
 
 type QueryParams = Record<string, string | { toString(): string }>;
 
+type Body = object | string | number | boolean;
+
 export type APICallResult<T> = Omit<Response, "json"> & {
 	json: () => Promise<T>;
 };
@@ -19,19 +21,19 @@ export async function apiCall<K>(
 	method: "POST" | "PATCH" | "PUT",
 	api: string,
 	query?: QueryParams,
-	body?: object,
+	body?: Body,
 ): Promise<APICallResult<K>>;
 export async function apiCall<K>(
 	method: "DELETE",
 	api: string,
 	query?: QueryParams,
-	body?: object,
+	body?: Body,
 ): Promise<APICallResult<K>>;
 export async function apiCall<K>(
 	method: "GET" | "POST" | "PATCH" | "PUT" | "DELETE",
 	api: string,
 	query?: QueryParams,
-	body?: object,
+	body?: Body,
 ): Promise<APICallResult<K>> {
 	let url = window.origin + "/api/" + api;
 
@@ -53,7 +55,7 @@ export async function apiCall<K>(
 
 	const response = await fetch(url, {
 		headers: {
-			"Content-Type": "application/json; charset=UTF-8",
+			"Content-Type": `${getContentType(typeof body)}; charset=UTF-8`,
 		},
 		credentials: "include",
 		method,
@@ -61,6 +63,20 @@ export async function apiCall<K>(
 	});
 
 	return response;
+}
+
+function getContentType(type: string): string {
+	switch (type) {
+		case "object":
+			return "application/json";
+		case "string":
+		case "number":
+		case "bigint":
+		case "boolean":
+			return "text/plain";
+		default:
+			return "application/octet-stream";
+	}
 }
 
 export function classNames(classNames: Record<string, boolean>): string {

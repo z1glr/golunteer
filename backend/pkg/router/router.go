@@ -107,7 +107,8 @@ func init() {
 			"tasks":          (*Handler).patchTask,          // modify a task
 		},
 		"PUT": {
-			"users/password": (*Handler).putPassword, // change the password
+			"users/password":           (*Handler).putPassword,              // change the password
+			"events/user/availability": (*Handler).putEventUserAvailability, // set or change the users availability for a specific event
 		},
 		"DELETE": {
 			"event":          (*Handler).deleteEvent,        // remove an event

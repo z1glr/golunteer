@@ -266,3 +266,10 @@ func User(userName string) ([]EventWithAssignment, error) {
 		return nil, nil
 	}
 }
+
+// set the availability of an user for a specific event
+func UserAvailability(userName string, eventID, availabilityID int) error {
+	_, err := db.DB.Exec("INSERT INTO USER_AVAILABILITIES (userName, eventID, availabilityID) VALUES ($1, $2, $3) ON CONFLICT (userName, eventID) DO UPDATE SET availabilityID = $3", userName, eventID, availabilityID)
+
+	return err
+}

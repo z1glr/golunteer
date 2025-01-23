@@ -41,6 +41,15 @@ export default function PengingEvents() {
 		},
 	});
 
+	async function setAvailability(eventID: number, availabilityID: number) {
+		await apiCall(
+			"PUT",
+			"events/user/availability",
+			{ eventID },
+			availabilityID,
+		);
+	}
+
 	return (
 		<div className="flex justify-center gap-4">
 			{events.items.map((e) => (
@@ -60,6 +69,9 @@ export default function PengingEvents() {
 								)}
 							</div>
 						)}
+						onSelectionChange={(a) =>
+							setAvailability(e.eventID, parseInt(a.anchorKey ?? ""))
+						}
 					>
 						{(availability) => (
 							<SelectItem

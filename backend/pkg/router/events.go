@@ -1,6 +1,8 @@
 package router
 
 import (
+	"strconv"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/johannesbuehl/golunteer/backend/pkg/db/events"
 )
@@ -117,6 +119,32 @@ func (a *Handler) getEventsUserAssigned() {
 	} else {
 		a.Data = events
 	}
+}
+
+func (a *Handler) putEventUserAvailability() {
+	// parse the query
+	if eventID := a.C.QueryInt("eventID", -1); eventID == -1 {
+		a.Status = fiber.StatusBadRequest
+
+		logger.Log().Msg("setting user-event-availability failed: query is missing \"eventID\"")
+	} else {
+		// parse the body
+		body := a.C.Body()
+
+		if availabilityID, err := strconv.Atoi(string(body)); err != nil {
+			a.Status = fiber.StatusBadRequest
+
+			logger.Log().Msgf("setting user-event-availability failed: can't get parse: %v", err)
+
+			// insert the availability into the database
+		} else if err := events.UserAvailability(a.UserName, eventID, availabilityID); err != nil {
+			a.Status = fiber.StatusInternalServerError
+
+			logger.Error().Msgf("setting user-event-availability failed: can't write availability to database: %v", err)
+		}
+	}
+
+	// parse the body
 }
 
 func (a *Handler) deleteEvent() {
