@@ -49,10 +49,12 @@ export default function AvailabilitySelector({
 	return (
 		<Select
 			items={availabilities.items}
-			label="Availability"
+			label={<h4>Availability</h4>}
 			variant="bordered"
 			className={className}
-			isMultiline
+			classNames={{ label: "text-base", trigger: "py-4" }}
+			labelPlacement="outside"
+			placeholder="Set availability"
 			renderValue={(availability) => (
 				<div>
 					{availability.map((a) =>

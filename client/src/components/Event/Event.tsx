@@ -2,7 +2,7 @@
 
 import LocalDate from "../LocalDate";
 import { BaseEvent } from "@/Zustand";
-import { Card, CardBody, CardHeader, Divider, Textarea } from "@heroui/react";
+import { Card, CardBody, CardFooter, CardHeader, Divider } from "@heroui/react";
 import React from "react";
 
 export default function Event({
@@ -10,7 +10,7 @@ export default function Event({
 	children,
 }: {
 	event: BaseEvent;
-	children?: React.ReactNode;
+	children?: React.ReactNode | [React.ReactNode, React.ReactNode];
 }) {
 	return (
 		<Card
@@ -34,15 +34,21 @@ export default function Event({
 			</CardHeader>
 			<Divider />
 			<CardBody>
-				<Textarea
-					isReadOnly
-					label="Description"
-					defaultValue={event.description}
-					variant="bordered"
-				/>
+				{event.description != "" ? (
+					<div>
+						<h4>Description</h4>
+						<div className="ms-2 mt-2">{event.description}</div>
+					</div>
+				) : null}
 
-				{children}
+				{Array.isArray(children) ? children[0] : children}
 			</CardBody>
+			{Array.isArray(children) ? (
+				<>
+					<Divider />
+					<CardFooter>{children[1]}</CardFooter>
+				</>
+			) : null}
 		</Card>
 	);
 }

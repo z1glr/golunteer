@@ -92,14 +92,32 @@ function prepareBody(
 	}
 }
 
-export function classNames(classNames: Record<string, boolean>): string {
-	return Object.entries(classNames)
-		.map(([classString, value]) => {
-			if (value) {
-				return classString;
-			}
-		})
-		.join(" ");
+export function classNames(...classNames: (string | undefined)[]): string;
+export function classNames(classNames: string[]): string;
+export function classNames(classNames: Record<string, boolean>): string;
+export function classNames(
+	classNames: string[] | Record<string, boolean> | string | undefined,
+	...rest: (string | undefined)[]
+) {
+	// if rest isn't undefined, use the rest values
+	if (rest !== undefined) {
+		return [classNames, ...rest].join(" ");
+
+		// if classnames is undefined too, return an empty string
+	} else if (classNames === undefined) {
+		return "";
+
+		// if classnames is an array, join it
+	} else if (Array.isArray(classNames)) {
+		return classNames.join(" ");
+
+		// if classnames is an object, join it based on the value
+	} else {
+		return Object.entries(classNames)
+			.filter(([, value]) => value)
+			.map(([classString]) => classString)
+			.join(" ");
+	}
 }
 
 export class DateFormatter {

@@ -26,8 +26,6 @@ export default function Events() {
 			if (result.ok) {
 				const data = await result.json();
 
-				console.debug(data);
-
 				return {
 					items: data,
 				};
@@ -72,14 +70,12 @@ export default function Events() {
 			<div className="flex flex-wrap justify-center gap-4">
 				{events.items.filter(showEvent).map((e) => (
 					<Event key={e.eventID} event={e}>
-						<div className="mt-auto">
-							<AvailabilitySelector
-								event={e}
-								className="mb-2"
-								startSelection={e.availability}
-							/>
-							<AssignmentTable tasks={e.tasks} />
-						</div>
+						<AssignmentTable
+							highlightUser={user?.userName}
+							tasks={e.tasks}
+							className="mt-auto"
+						/>
+						<AvailabilitySelector event={e} startSelection={e.availability} />
 					</Event>
 				))}
 			</div>
