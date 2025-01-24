@@ -8,8 +8,8 @@ export default function Overview() {
 
 			<h1 className="mb-4 text-center text-4xl">My Events</h1>
 			<MyEvents />
-			<h1 className="mb-4 text-center text-4xl">
-				events that I don't have entered an availability yet
+			<h1 className="mb-4 mt-8 text-center text-4xl">
+				events that I don&apos;t have entered an availability yet
 			</h1>
 			<PengingEvents />
 		</div>

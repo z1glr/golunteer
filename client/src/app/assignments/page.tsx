@@ -7,7 +7,6 @@ import { apiCall, getAvailabilities, getTasks } from "@/lib";
 import { EventData } from "@/Zustand";
 import {
 	Add,
-	AddLarge,
 	Copy,
 	Edit,
 	NotAvailable,
@@ -17,12 +16,6 @@ import {
 import {
 	Button,
 	ButtonGroup,
-	Chip,
-	Dropdown,
-	DropdownItem,
-	DropdownMenu,
-	DropdownSection,
-	DropdownTrigger,
 	Modal,
 	ModalBody,
 	ModalContent,
@@ -38,11 +31,11 @@ import {
 	Tooltip,
 } from "@heroui/react";
 import { useAsyncList } from "@react-stately/data";
-import React, { Key, ReactElement, useEffect, useState } from "react";
+import React, { Key, useEffect, useState } from "react";
 import { Availability } from "../admin/(availabilities)/AvailabilityEditor";
-import AvailabilityChip from "@/components/AvailabilityChip";
+import VolunteerSelector from "./VolunteerSelector";
 
-type EventWithAvailabilities = EventData & {
+export type EventWithAvailabilities = EventData & {
 	availabilities: Record<string, string[]>;
 };
 
@@ -137,35 +130,6 @@ export default function AdminPanel() {
 	}
 
 	// send a command to the backend to assign a volunteer to a task
-	async function sendVolunteerAssignment(
-		eventID: number,
-		taskID: number,
-		userName: string,
-	) {
-		const result = await apiCall(
-			"PUT",
-			"events/assignments",
-			{ eventID, taskID },
-			userName,
-		);
-
-		if (result.ok) {
-			events.reload();
-		}
-	}
-
-	// sends a command to the backend to remove an volunteer-assignment
-	async function removeVolunteerAssignment(eventID: number, taskID: number) {
-		const result = await apiCall("DELETE", "events/assignments", {
-			eventID,
-			taskID,
-		});
-
-		if (result.ok) {
-			events.reload();
-		}
-	}
-
 	// send a delete request to the backend and close the popup on success
 	async function sendDeleteEvent() {
 		if (deleteEvent !== undefined) {
@@ -236,72 +200,16 @@ export default function AdminPanel() {
 				);
 			default:
 				// only show the selector, if the task is needed for the event
-				if (event.tasks?.some((t) => t.taskID == key)) {
+				const task = event.tasks.find((t) => t.taskID == key);
+
+				if (!!task) {
 					return (
-						<Dropdown>
-							<DropdownTrigger>
-								{!!event.tasks.find((t) => t.taskID == key)?.userName ? (
-									<Chip
-										onClose={() =>
-											removeVolunteerAssignment(event.eventID, key as number)
-										}
-									>
-										{event.tasks.find((t) => t.taskID == key)?.userName}
-									</Chip>
-								) : (
-									<Button isIconOnly size="sm" radius="md" variant="flat">
-										<AddLarge className="mx-auto" />
-									</Button>
-								)}
-							</DropdownTrigger>
-							<DropdownMenu
-								onAction={(a) =>
-									sendVolunteerAssignment(
-										event.eventID,
-										key as number,
-										a as string,
-									)
-								}
-							>
-								{Object.entries(event.availabilities).map(
-									(
-										[availabilityId, volunteers],
-										iAvailability,
-										aAvailabilities,
-									) => (
-										<DropdownSection
-											key={availabilityId}
-											showDivider={iAvailability < aAvailabilities.length - 1}
-											classNames={{
-												base: "flex flex-col justify-start",
-												heading: "mx-auto",
-											}}
-											className="justi"
-											title={
-												(
-													<AvailabilityChip
-														availability={getAvailabilityById(
-															parseInt(availabilityId),
-														)}
-													/>
-												) as ReactElement & string
-											}
-										>
-											{volunteers.map((v) => (
-												<DropdownItem
-													key={v}
-													classNames={{
-														base: "", // this empty class is needed, else some styles are applied
-													}}
-												>
-													{v}
-												</DropdownItem>
-											))}
-										</DropdownSection>
-									),
-								)}
-							</DropdownMenu>
-						</Dropdown>
+						<VolunteerSelector
+							event={event}
+							task={task}
+							getAvailabilityById={getAvailabilityById}
+							onReloadRequest={events.reload}
+						/>
 					);
 				} else {
 					return <NotAvailable className="mx-auto text-foreground-300" />;

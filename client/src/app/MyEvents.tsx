@@ -1,10 +1,14 @@
 "use client";
 
+import AssignmentTable from "@/components/Event/AssignmentTable";
+import Event from "@/components/Event/Event";
 import { apiCall } from "@/lib";
-import { EventData } from "@/Zustand";
+import zustand, { EventData } from "@/Zustand";
 import { useAsyncList } from "@react-stately/data";
 
 export default function MyEvents() {
+	const user = zustand((state) => state.user);
+
 	const events = useAsyncList({
 		async load() {
 			const result = await apiCall<EventData[]>("GET", "events/user/assigned");
@@ -26,8 +30,12 @@ export default function MyEvents() {
 	});
 
 	return (
-		<div>
-			<h2>{events.items.map((e) => e.date)}</h2>
+		<div className="flex justify-center gap-4">
+			{events.items.map((e) => (
+				<Event key={e.eventID} event={e}>
+					<AssignmentTable tasks={e.tasks} highlightUser={user?.userName} />
+				</Event>
+			))}
 		</div>
 	);
 }

@@ -25,13 +25,13 @@ type EventAssignment struct {
 	UserName *string `db:"userName" json:"userName"`
 }
 
-type EventWithAssignment struct {
+type EventWithAssignments struct {
 	EventData
 	Tasks []EventAssignment `json:"tasks"`
 }
 
 type EventWithAvailabilities struct {
-	EventWithAssignment
+	EventWithAssignments
 	Availabilities availabilities.AvailabilityMap `json:"availabilities"`
 }
 
@@ -41,22 +41,22 @@ type EventCreate struct {
 	Tasks       []int  `json:"tasks" validate:"required,min=1"`
 }
 
-// transform the database-entry to an Event
-func (e EventData) Event() (EventWithAssignment, error) {
+// transform the database-entry to an WithAssignments
+func (e EventData) WithAssignments() (EventWithAssignments, error) {
 	// get the assignments associated with the event
 	if assignemnts, err := Assignments(e.EventID); err != nil {
-		return EventWithAssignment{}, err
+		return EventWithAssignments{}, err
 	} else {
-		return EventWithAssignment{
+		return EventWithAssignments{
 			EventData: e,
 			Tasks:     assignemnts,
 		}, nil
 	}
 }
 
-func (e EventData) EventWithAvailabilities() (EventWithAvailabilities, error) {
+func (e EventData) WithAvailabilities() (EventWithAvailabilities, error) {
 	// get the event with assignments
-	if event, err := e.Event(); err != nil {
+	if event, err := e.WithAssignments(); err != nil {
 		return EventWithAvailabilities{}, err
 
 		// get the availabilities
@@ -64,8 +64,8 @@ func (e EventData) EventWithAvailabilities() (EventWithAvailabilities, error) {
 		return EventWithAvailabilities{}, err
 	} else {
 		return EventWithAvailabilities{
-			EventWithAssignment: event,
-			Availabilities:      availabilities,
+			EventWithAssignments: event,
+			Availabilities:       availabilities,
 		}, nil
 	}
 }
@@ -173,15 +173,15 @@ func All() ([]EventData, error) {
 	}
 }
 
-func WithAssignments() ([]EventWithAssignment, error) {
+func WithAssignments() ([]EventWithAssignments, error) {
 	// get all events
 	if eventsDB, err := All(); err != nil {
 		return nil, err
 	} else {
-		events := make([]EventWithAssignment, len(eventsDB))
+		events := make([]EventWithAssignments, len(eventsDB))
 
 		for ii, e := range eventsDB {
-			if ev, err := e.Event(); err != nil {
+			if ev, err := e.WithAssignments(); err != nil {
 				logger.Logger.Error().Msgf("can't get assignments for event with assignmentID = %d: %v", e.EventID, err)
 			} else {
 				events[ii] = ev
@@ -200,8 +200,14 @@ func WithAvailabilities() ([]EventWithAvailabilities, error) {
 		events := make([]EventWithAvailabilities, len(eventsDB))
 
 		for ii, e := range eventsDB {
-			if ev, err := e.EventWithAvailabilities(); err != nil {
+			if ev, err := e.WithAvailabilities(); err != nil {
 				logger.Logger.Error().Msgf("can't get availabilities for event with eventID = %d: %v", e.EventID, err)
+
+				// remove the last element from the return-slice, since there is now one element less
+				if len(events) > 0 {
+					events = events[:len(events)-1]
+				}
+
 			} else {
 				events[ii] = ev
 			}
@@ -250,20 +256,33 @@ func Assignments(eventID int) ([]EventAssignment, error) {
 	}
 }
 
-func User(userName string) ([]EventWithAssignment, error) {
+func User(userName string) ([]EventWithAssignments, error) {
 	// get all assignments of the user
 
-	// var events []EventWithAssignment
-	var events []struct {
-		EventData
-		TaskID   int    `db:"taskID"`
-		UserName string `db:"userName"`
-	}
+	// var eventsDB []EventWithAssignment
+	var eventsDB []EventData
 
-	if err := db.DB.Select(&events, "SELECT DISTINCT * FROM USER_ASSIGNMENTS INNER JOIN EVENTS ON USER_ASSIGNMENTS.eventID = EVENTS.eventID WHERE userName = $1", userName); err != nil {
+	// get all the events where the volunteer is assigned a task
+	if err := db.DB.Select(&eventsDB, "SELECT DISTINCT EVENTS.date, EVENTS.description, EVENTS.eventID FROM USER_ASSIGNMENTS INNER JOIN EVENTS ON USER_ASSIGNMENTS.eventID = EVENTS.eventID WHERE userName = $1", userName); err != nil {
 		return nil, err
 	} else {
-		return nil, nil
+		// for each event create an event with assignments
+		events := make([]EventWithAssignments, len(eventsDB))
+
+		for ii, event := range eventsDB {
+			if eventsWithAssignment, err := event.WithAssignments(); err != nil {
+				logger.Logger.Error().Msgf("can't get assignments for event with eventID = %d: %v", event.EventID, err)
+
+				// remove the last element from the return-slice, since there is now one element less
+				if len(events) > 0 {
+					events = events[:len(events)-1]
+				}
+			} else {
+				events[ii] = eventsWithAssignment
+			}
+		}
+
+		return events, nil
 	}
 }
 

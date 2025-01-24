@@ -14,7 +14,7 @@ export type EventData = BaseEvent & {
 	tasks: TaskAssignment[];
 };
 
-interface TaskAssignment {
+export interface TaskAssignment {
 	taskID: number;
 	taskName: string;
 	userName: string | null;
