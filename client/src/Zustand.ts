@@ -10,9 +10,15 @@ export interface BaseEvent {
 	description: string;
 }
 
+export type EventAvailability = BaseEvent & {
+	availability: number;
+};
+
 export type EventData = BaseEvent & {
 	tasks: TaskAssignment[];
 };
+
+export type EventDataWithAvailability = EventData & EventAvailability;
 
 export interface TaskAssignment {
 	taskID: number;

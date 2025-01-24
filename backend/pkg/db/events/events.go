@@ -35,6 +35,11 @@ type EventWithAvailabilities struct {
 	Availabilities availabilities.AvailabilityMap `json:"availabilities"`
 }
 
+type EventWithAssignmentsUserAvailability struct {
+	EventWithAssignments
+	Availability *int `json:"availability" db:"availabilityID"`
+}
+
 type EventCreate struct {
 	Date        string `db:"date" json:"date" validate:"required,datetime=2006-01-02T15:04:05.999999999Z"`
 	Description string `db:"description" json:"description"`
@@ -51,6 +56,19 @@ func (e EventData) WithAssignments() (EventWithAssignments, error) {
 			EventData: e,
 			Tasks:     assignemnts,
 		}, nil
+	}
+}
+
+func (e EventWithAssignments) WithUserAvailability(userName string) (EventWithAssignmentsUserAvailability, error) {
+	// get the availability of the user
+	event := EventWithAssignmentsUserAvailability{
+		EventWithAssignments: e,
+	}
+
+	if err := db.DB.Select(&event, "SELECT availabilityID FROM USER_AVAILABILITIES WHERE eventID = $1 AND userName = $2", e.EventID, userName); err != nil {
+		return EventWithAssignmentsUserAvailability{}, err
+	} else {
+		return event, nil
 	}
 }
 
@@ -210,6 +228,26 @@ func WithAvailabilities() ([]EventWithAvailabilities, error) {
 
 			} else {
 				events[ii] = ev
+			}
+		}
+
+		return events, nil
+	}
+}
+
+func WithUserAvailability(userName string) ([]EventWithAssignmentsUserAvailability, error) {
+	var events []EventWithAssignmentsUserAvailability
+
+	if err := db.DB.Select(&events, "SELECT EVENTS.eventID, EVENTS.description, EVENTS.date, USER_AVAILABILITIES.availabilityID FROM EVENTS LEFT JOIN USER_AVAILABILITIES ON EVENTS.eventID = USER_AVAILABILITIES.eventID AND USER_AVAILABILITIES.userName = $1", userName); err != nil {
+		return nil, err
+	} else {
+		// get the assignments for every event
+		for ii, event := range events {
+			if eventWithAssignments, err := event.EventWithAssignments.EventData.WithAssignments(); err != nil {
+				// remove the current event from the events
+				events = append(events[:ii], events[ii+1:]...)
+			} else {
+				events[ii].EventWithAssignments = eventWithAssignments
 			}
 		}
 

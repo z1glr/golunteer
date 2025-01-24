@@ -5,13 +5,15 @@ export default function AssignmentTable({
 	tasks,
 	highlightTask,
 	highlightUser,
+	className,
 }: {
 	tasks: EventData["tasks"];
 	highlightUser?: string;
 	highlightTask?: string;
+	className?: string;
 }) {
 	return (
-		<table>
+		<table className={className}>
 			<tbody>
 				{tasks.map((task) => (
 					<tr

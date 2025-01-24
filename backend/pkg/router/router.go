@@ -83,6 +83,9 @@ func init() {
 			// all events with the availabilities of the individual users
 			"events/availabilities": (*Handler).getEventsAvailabilities,
 
+			// all events with the task-assignments and the availability of the current user
+			"events/user/assignmentAvailability": (*Handler).getEventUserAssignmentAvailability,
+
 			// events the user has to enter his availability for
 			"events/user/pending": (*Handler).getEventsUserPending,
 

@@ -1,5 +1,5 @@
 import MyEvents from "./MyEvents";
-import PengingEvents from "./PendingEvents";
+import PendingEvents from "./PendingEvents";
 
 export default function Overview() {
 	return (
@@ -12,7 +12,7 @@ export default function Overview() {
 				<h1 className="mb-4 mt-8 text-center text-4xl lg:mt-0">
 					Pending Events
 				</h1>
-				<PengingEvents />
+				<PendingEvents />
 			</div>
 		</div>
 	);

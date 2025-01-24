@@ -90,6 +90,17 @@ func (a *Handler) getEventsAvailabilities() {
 	}
 }
 
+func (a *Handler) getEventUserAssignmentAvailability() {
+	// retrieve the assignments
+	if events, err := events.WithUserAvailability(a.UserName); err != nil {
+		a.Status = fiber.StatusBadRequest
+
+		logger.Log().Msgf("getting events with tasks and user-availability failed: %v", err)
+	} else {
+		a.Data = events
+	}
+}
+
 func (a *Handler) getEventsUserPending() {
 	if events, err := events.UserPending(a.UserName); err != nil {
 		a.Status = fiber.StatusInternalServerError

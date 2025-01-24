@@ -3,22 +3,30 @@ import AddEvent from "@/components/Event/AddEvent";
 import AssignmentTable from "@/components/Event/AssignmentTable";
 import Event from "@/components/Event/Event";
 import { apiCall } from "@/lib";
-import zustand, { EventData } from "@/Zustand";
+import zustand, { EventDataWithAvailability } from "@/Zustand";
 import { Add } from "@carbon/icons-react";
-import { Button } from "@heroui/react";
+import { Button, Tab, Tabs } from "@heroui/react";
 import { useAsyncList } from "@react-stately/data";
 import { useState } from "react";
+import AvailabilitySelector from "@/components/Event/AvailabilitySelector";
 
 export default function Events() {
 	const [showAddItemDialogue, setShowAddItemDialogue] = useState(false);
-	const admin = zustand((state) => state.user?.admin);
+	const [filter, setFilter] = useState<string | number>("");
 
-	const events = useAsyncList<EventData>({
+	const user = zustand((state) => state.user);
+
+	const events = useAsyncList({
 		async load() {
-			const result = await apiCall<EventData[]>("GET", "events/assignments");
+			const result = await apiCall<EventDataWithAvailability[]>(
+				"GET",
+				"events/user/assignmentAvailability",
+			);
 
 			if (result.ok) {
 				const data = await result.json();
+
+				console.debug(data);
 
 				return {
 					items: data,
@@ -31,20 +39,52 @@ export default function Events() {
 		},
 	});
 
+	function showEvent(event: EventDataWithAvailability): boolean {
+		switch (filter) {
+			case "assigned":
+				return event.tasks.some((t) => {
+					return t.userName === user?.userName;
+				});
+
+			case "pending":
+				return event.availability === null;
+
+			default:
+				return true;
+		}
+	}
+
 	return (
-		<div className="relative flex-1">
-			<h2 className="mb-4 text-center text-4xl">Upcoming Events</h2>
+		<div className="relative flex flex-1 flex-col gap-4">
+			<h2 className="text-center text-4xl">Upcoming Events</h2>
+
+			<Tabs
+				selectedKey={filter}
+				onSelectionChange={setFilter}
+				color="primary"
+				className="mx-auto"
+			>
+				<Tab key="all" title="All" />
+				<Tab key="pending" title="Pending" />
+				<Tab key="assigned" title="Assigned" />
+			</Tabs>
+
 			<div className="flex flex-wrap justify-center gap-4">
-				{events.items.map((ee, ii) => (
-					<Event key={ii} event={ee}>
+				{events.items.filter(showEvent).map((e) => (
+					<Event key={e.eventID} event={e}>
 						<div className="mt-auto">
-							<AssignmentTable tasks={ee.tasks} />
+							<AvailabilitySelector
+								event={e}
+								className="mb-2"
+								startSelection={e.availability}
+							/>
+							<AssignmentTable tasks={e.tasks} />
 						</div>
 					</Event>
 				))}
 			</div>
 
-			{admin ? (
+			{user?.admin ? (
 				<>
 					<Button
 						color="primary"
