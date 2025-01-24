@@ -16,8 +16,6 @@ export default function MyEvents() {
 			if (result.ok) {
 				const data = await result.json();
 
-				console.debug(data);
-
 				return {
 					items: data,
 				};
