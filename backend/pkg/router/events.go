@@ -146,12 +146,14 @@ func (a *Handler) putEventUserAvailability() {
 			a.Status = fiber.StatusBadRequest
 
 			logger.Log().Msgf("setting user-event-availability failed: can't get parse: %v", err)
-
+		} else {
+			// if there was already an availability entered for this user-event-combi, check for existing assignments and remove them
 			// insert the availability into the database
-		} else if err := events.UserAvailability(eventID, availabilityID, a.UserName); err != nil {
-			a.Status = fiber.StatusInternalServerError
+			if err := events.SetUserAvailability(eventID, availabilityID, a.UserName); err != nil {
+				a.Status = fiber.StatusInternalServerError
 
-			logger.Error().Msgf("setting user-event-availability failed: can't write availability to database: %v", err)
+				logger.Error().Msgf("setting user-event-availability failed: can't write availability to database: %v", err)
+			}
 		}
 	}
 }
@@ -173,13 +175,22 @@ func (a *Handler) putEventAssignment() {
 	} else if taskID := a.C.QueryInt("taskID", -1); taskID == -1 {
 		a.Status = fiber.StatusBadRequest
 
-		logger.Warn().Msg("setting event-assignment failed: query is missing \"taskID\"")
+		logger.Log().Msg("setting event-assignment failed: query is missing \"taskID\"")
 
 		// parse the body
 	} else if userName := string(a.C.Body()); userName == "" {
 		a.Status = fiber.StatusBadRequest
 
-		logger.Warn().Msg("setting event-assignment failed: body is missing")
+		logger.Log().Msg("setting event-assignment failed: body is missing")
+		// check wether the user has actually entered an availability for the event
+	} else if availabilityID, err := events.GetUserAvailability(eventID, userName); err != nil {
+		a.Status = fiber.StatusBadRequest
+
+		logger.Log().Msgf("setting event-assignment failed: can't check users availability: %v", err)
+	} else if availabilityID == nil {
+		a.Status = fiber.StatusConflict
+
+		logger.Log().Msgf("setting event-assignment failed: user %q isn't available for event with eventID = %d", userName, eventID)
 
 		// set the availability in the database
 	} else if err := events.SetAssignment(eventID, taskID, userName); err != nil {
@@ -187,7 +198,6 @@ func (a *Handler) putEventAssignment() {
 
 		logger.Warn().Msgf("setting event-assignment failed: can't write to database: %v", err)
 	}
-
 }
 
 func (a *Handler) deleteEventAssignment() {

@@ -4,8 +4,10 @@ import (
 	"github.com/johannesbuehl/golunteer/backend/pkg/db"
 )
 
+type AvailabilityID int
+
 type AvailabilityDB struct {
-	AvailabilityID int `db:"availabilityID" json:"availabilityID" validate:"required"`
+	AvailabilityID AvailabilityID `db:"availabilityID" json:"availabilityID" validate:"required"`
 	Availability   `validate:"required"`
 }
 
@@ -38,12 +40,12 @@ func Slice() ([]AvailabilityDB, error) {
 	}
 }
 
-func Keys() (map[int]Availability, error) {
+func Keys() (map[AvailabilityID]Availability, error) {
 	if availabilitiesRaw, err := Slice(); err != nil {
 		return nil, err
 	} else {
 		// convert the result in a map
-		availabilities := map[int]Availability{}
+		availabilities := map[AvailabilityID]Availability{}
 
 		for _, a := range availabilitiesRaw {
 			availabilities[a.AvailabilityID] = Availability{

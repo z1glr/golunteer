@@ -235,6 +235,18 @@ func WithAvailabilities() ([]EventWithAvailabilities, error) {
 	}
 }
 
+func GetUserAvailability(eventID int, userName string) (*availabilities.AvailabilityID, error) {
+	var availabilityID struct {
+		AvailabilityID *availabilities.AvailabilityID `db:"availabilityID"`
+	}
+
+	if err := db.DB.QueryRowx("SELECT availabilityID FROM USER_AVAILABILITIES WHERE eventID = $1 AND userName = $2", eventID, userName).StructScan(&availabilityID); err != nil {
+		return availabilityID.AvailabilityID, err
+	} else {
+		return availabilityID.AvailabilityID, nil
+	}
+}
+
 func WithUserAvailability(userName string) ([]EventWithAssignmentsUserAvailability, error) {
 	var events []EventWithAssignmentsUserAvailability
 
@@ -325,7 +337,7 @@ func User(userName string) ([]EventWithAssignments, error) {
 }
 
 // set the availability of an user for a specific event
-func UserAvailability(eventID, availabilityID int, userName string) error {
+func SetUserAvailability(eventID, availabilityID int, userName string) error {
 	_, err := db.DB.Exec("INSERT INTO USER_AVAILABILITIES (userName, eventID, availabilityID) VALUES ($1, $2, $3) ON CONFLICT (userName, eventID) DO UPDATE SET availabilityID = $3", userName, eventID, availabilityID)
 
 	return err

@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS USERS (
 	userName varchar(64) PRIMARY KEY,
 	password BLOB NOT NULL,
 	admin BOOL NOT NULL DEFAULT(false),
-	tokenID varchar(64) NOT NULL,
+	tokenID varchar(36) NOT NULL,
 	CHECK (length(password) = 60),
 	CHECK (length(tokenID) = 36)
 );

@@ -146,9 +146,9 @@ func init() {
 					args.Status = fiber.StatusUnauthorized
 
 					logger.Log().Msgf("user not authorized")
+				} else {
+					handler(&args)
 				}
-
-				handler(&args)
 
 				return args.send(c)
 			})
