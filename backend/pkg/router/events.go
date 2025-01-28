@@ -4,6 +4,8 @@ import (
 	"strconv"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/jmoiron/sqlx"
+	"github.com/johannesbuehl/golunteer/backend/pkg/db"
 	"github.com/johannesbuehl/golunteer/backend/pkg/db/events"
 )
 
@@ -147,7 +149,28 @@ func (a *Handler) putEventUserAvailability() {
 
 			logger.Log().Msgf("setting user-event-availability failed: can't get parse: %v", err)
 		} else {
-			// if there was already an availability entered for this user-event-combi, check for existing assignments and remove them
+			// if there was already a task assigned for this user-event-combi, remove it
+			var taskIDs []int
+			if err := db.DB.Get(&taskIDs, "SELECT taskID FROM USER_ASSIGNMENTS WHERE eventID = $1 AND userName = $2", eventID, a.UserName); err != nil {
+				a.Status = fiber.StatusInternalServerError
+
+				logger.Error().Msgf("setting user-event availability failed: can't check for existing assignment: %v", err)
+			} else if len(taskIDs) > 0 {
+				if query, args, err := sqlx.In("UPDATE USER_ASSIGNMENTS SET userName = null WHERE eventID = $1 AND taskID = $2", eventID, taskIDs); err != nil {
+					a.Status = fiber.StatusInternalServerError
+
+					logger.Error().Msgf("setting user-event-availability failed: can't craft task-assignment-deletion-query: %v", err)
+				} else {
+					query = db.DB.Rebind(query)
+
+					if _, err := db.DB.Exec(query, args); err != nil {
+						a.Status = fiber.StatusInternalServerError
+
+						logger.Error().Msgf("setting user-event-availability failed: can't delete task-assignments: %v", err)
+					}
+				}
+			}
+
 			// insert the availability into the database
 			if err := events.SetUserAvailability(eventID, availabilityID, a.UserName); err != nil {
 				a.Status = fiber.StatusInternalServerError

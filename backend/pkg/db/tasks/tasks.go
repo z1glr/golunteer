@@ -50,7 +50,7 @@ func Add(t Task) error {
 }
 
 func Update(t TaskDB) error {
-	_, err := db.DB.NamedExec("UPDATE TASKS set taskName = :taskName, enabled = :enabled WHERE taskID = :taskID", &t)
+	_, err := db.DB.NamedExec("UPDATE TASKS SET taskName = :taskName, enabled = :enabled WHERE taskID = :taskID", &t)
 
 	return err
 }
