@@ -31,7 +31,11 @@ export default function MyEvents() {
 		<div className="flex justify-center gap-4">
 			{events.items.map((e) => (
 				<Event key={e.eventID} event={e}>
-					<AssignmentTable tasks={e.tasks} highlightUser={user?.userName} />
+					<AssignmentTable
+						className="mt-auto"
+						tasks={e.tasks}
+						highlightUser={user?.userName}
+					/>
 				</Event>
 			))}
 		</div>
