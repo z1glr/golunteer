@@ -2,7 +2,7 @@
 
 import CheckboxIcon from "@/components/CheckboxIcon";
 import { apiCall } from "@/lib";
-import zustand from "@/Zustand";
+import zustand, { StateUser } from "@/Zustand";
 import {
 	ViewFilled,
 	ViewOffFilled,
@@ -21,7 +21,7 @@ export default function Login() {
 	async function sendLogin(e: FormEvent<HTMLFormElement>) {
 		const data = Object.fromEntries(new FormData(e.currentTarget));
 
-		const result = await apiCall("POST", "login", undefined, data);
+		const result = await apiCall<StateUser>("POST", "login", undefined, data);
 
 		if (result.ok) {
 			// add the user-info to the zustand

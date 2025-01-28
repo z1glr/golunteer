@@ -1,11 +1,13 @@
 import {
 	AllString,
 	classNames,
+	getTasks,
 	validatePassword as validatePassword,
 } from "@/lib";
 import zustand, { User, UserAddModify } from "@/Zustand";
 import {
 	Checkbox,
+	CheckboxGroup,
 	Form,
 	Input,
 	Modal,
@@ -14,6 +16,7 @@ import {
 	ModalFooter,
 	ModalHeader,
 } from "@heroui/react";
+import { useAsyncList } from "@react-stately/data";
 import React, { FormEvent, useState } from "react";
 
 export default function UserEditor(props: {
@@ -26,8 +29,19 @@ export default function UserEditor(props: {
 	onSubmit: (user: UserAddModify) => void;
 }) {
 	const [name, setName] = useState(props.value?.userName ?? "");
-	const [admin, setAdmin] = useState(props.value?.admin ?? false);
 	const [password, setPassword] = useState("");
+	const [admin, setAdmin] = useState(props.value?.admin ?? false);
+	const [possibleTasks, setPossibleTasks] = useState<string[]>(
+		props.value?.possibleTasks.map((t) => t.toString()) ?? [],
+	);
+
+	const tasks = useAsyncList({
+		async load() {
+			return {
+				items: await getTasks(),
+			};
+		},
+	});
 
 	const pwErrors = validatePassword(password);
 
@@ -39,6 +53,7 @@ export default function UserEditor(props: {
 
 		const data = {
 			...formData,
+			possibleTasks: possibleTasks.map((t) => parseInt(t)),
 			admin: formData.admin !== undefined,
 		};
 
@@ -120,6 +135,17 @@ export default function UserEditor(props: {
 						>
 							Admin
 						</Checkbox>
+						<CheckboxGroup
+							label="Assignable Tasks"
+							value={possibleTasks}
+							onValueChange={setPossibleTasks}
+						>
+							{tasks.items.map((task) => (
+								<Checkbox key={task.taskID} value={task.taskID?.toString()}>
+									{task.taskName}
+								</Checkbox>
+							))}
+						</CheckboxGroup>
 					</ModalBody>
 					<ModalFooter>{props.footer}</ModalFooter>
 				</ModalContent>

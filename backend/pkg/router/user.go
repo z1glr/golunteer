@@ -69,7 +69,7 @@ func (a *Handler) putPassword() {
 			a.Status = fiber.StatusBadRequest
 
 			// send the password change to the database and get the new tokenID back
-		} else if tokenID, err := users.ChangePassword(body); err != nil {
+		} else if tokenID, err := body.UserName.ChangePassword(body.Password); err != nil {
 			logger.Error().Msgf("can't update password: %v", err)
 
 			a.Status = fiber.StatusInternalServerError
@@ -103,7 +103,7 @@ func (a *Handler) patchUser() {
 		// parse the body
 		var body struct {
 			users.UserAdd
-			NewName string `json:"newName"`
+			NewName users.UserName `json:"newName"`
 		}
 
 		if err := a.C.BodyParser(&body); err != nil {
@@ -126,13 +126,7 @@ func (a *Handler) patchUser() {
 				// if the password has length 0 assume the password shouldn't be changed
 			} else {
 				if len(body.Password) > 0 {
-					// create a password-change-struct and validate it. use the old user-name, since the new isn't stored yet
-					usePasswordChange := users.UserChangePassword{
-						UserName: body.UserName,
-						Password: body.Password,
-					}
-
-					if _, err = users.ChangePassword(usePasswordChange); err != nil {
+					if _, err = body.UserName.ChangePassword(body.Password); err != nil {
 						a.Status = fiber.StatusInternalServerError
 
 						logger.Error().Msgf("can't change password: %v", err)
@@ -143,7 +137,7 @@ func (a *Handler) patchUser() {
 
 				// only change the name, if it differs
 				if body.NewName != body.UserName {
-					if err := users.ChangeName(body.UserName, body.NewName); err != nil {
+					if err := body.UserName.ChangeName(body.NewName); err != nil {
 						a.Status = fiber.StatusInternalServerError
 
 						logger.Error().Msgf("can't change user-name: %v", err)
@@ -153,15 +147,22 @@ func (a *Handler) patchUser() {
 				}
 
 				// set the admin-status
-				if err := users.SetAdmin(body.NewName, body.Admin); err != nil {
+				if err := body.NewName.SetAdmin(body.Admin); err != nil {
 					a.Status = fiber.StatusInternalServerError
 
 					logger.Error().Msgf("updating admin-status failed: %v", err)
+
+					// update the possible tasks
+				} else if err := body.NewName.SetTasks(body.PossibleTasks); err != nil {
+					a.Status = fiber.StatusInternalServerError
+
+					logger.Error().Msgf("updating possible user-tasks failed: %v", err)
+
 				} else {
 					// if we modified ourself, update the session-cookie
-					if body.UserName == a.UserName {
+					if body.UserName != body.NewName {
 						// get the tokenID
-						if tokenID, err := users.TokenID(body.NewName); err != nil {
+						if tokenID, err := body.NewName.TokenID(); err != nil {
 							a.Status = fiber.StatusInternalServerError
 
 							logger.Error().Msgf("can't get tokenID: %v", err)
@@ -200,7 +201,7 @@ func (a *Handler) deleteUser() {
 		a.Status = fiber.StatusBadRequest
 
 		// check wether the user tries to delete himself
-	} else if userName == a.UserName {
+	} else if users.UserName(userName) == a.UserName {
 		logger.Log().Msg("user-deletion failed: self-deletion is illegal")
 
 		a.Status = fiber.StatusBadRequest

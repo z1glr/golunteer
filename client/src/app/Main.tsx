@@ -1,7 +1,7 @@
 "use client";
 
 import { apiCall } from "@/lib";
-import zustand from "@/Zustand";
+import zustand, { StateUser } from "@/Zustand";
 import { Spinner } from "@heroui/react";
 import { usePathname, useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
@@ -23,10 +23,7 @@ export default function Main({ children }: { children: React.ReactNode }) {
 		void (async () => {
 			let loggedIn = false;
 
-			const welcomeResult = await apiCall<{
-				userName: string;
-				loggedIn: boolean;
-			}>("GET", "welcome");
+			const welcomeResult = await apiCall<StateUser>("GET", "welcome");
 
 			if (welcomeResult.ok) {
 				try {

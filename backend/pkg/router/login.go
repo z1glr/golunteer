@@ -3,6 +3,7 @@ package router
 import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/johannesbuehl/golunteer/backend/pkg/db"
+	"github.com/johannesbuehl/golunteer/backend/pkg/db/users"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -45,8 +46,8 @@ func handleLogin(c *fiber.Ctx) error {
 
 	// extract username and password from the request
 	requestBody := struct {
-		Username string `json:"userName" validate:"required"`
-		Password string `json:"password" validate:"required"`
+		users.UserName `json:"userName" validate:"required"`
+		Password       string `json:"password" validate:"required"`
 	}{}
 
 	if err := args.C.BodyParser(&requestBody); err != nil {
@@ -60,21 +61,21 @@ func handleLogin(c *fiber.Ctx) error {
 	} else {
 		// query the database for the user
 		var result userDB
-		if err := db.DB.QueryRowx("SELECT password, admin, tokenID FROM USERS WHERE userName = ?", requestBody.Username).StructScan(&result); err != nil {
+		if err := db.DB.QueryRowx("SELECT password, admin, tokenID FROM USERS WHERE userName = ?", requestBody.UserName).StructScan(&result); err != nil {
 			args.Status = fiber.StatusForbidden
 			args.Message = messageWrongLogin
 
-			logger.Info().Msgf("can't get user with userName = %q from database", requestBody.Username)
+			logger.Info().Msgf("can't get user with userName = %q from database", requestBody.UserName)
 		} else {
 			// hash the password
 			if bcrypt.CompareHashAndPassword(result.Password, []byte(requestBody.Password)) != nil {
 				args.Status = fiber.StatusForbidden
 
-				logger.Info().Msgf("login denied: wrong password for user with userName = %q", requestBody.Username)
+				logger.Info().Msgf("login denied: wrong password for user with userName = %q", requestBody.UserName)
 			} else {
 				// password is correct -> generate the JWT
 				if jwt, err := config.SignJWT(JWTPayload{
-					UserName: requestBody.Username,
+					UserName: requestBody.UserName,
 					TokenID:  result.TokenID,
 				}); err != nil {
 					args.Status = fiber.StatusInternalServerError
@@ -83,11 +84,11 @@ func handleLogin(c *fiber.Ctx) error {
 					args.setSessionCookie(&jwt)
 
 					args.Data = UserChecked{
-						UserName: requestBody.Username,
+						UserName: requestBody.UserName,
 						Admin:    true,
 					}
 
-					logger.Debug().Msgf("user %q logged in", requestBody.Username)
+					logger.Debug().Msgf("user %q logged in", requestBody.UserName)
 				}
 			}
 		}

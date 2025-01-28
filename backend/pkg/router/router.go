@@ -9,6 +9,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	_config "github.com/johannesbuehl/golunteer/backend/pkg/config"
 	"github.com/johannesbuehl/golunteer/backend/pkg/db"
+	"github.com/johannesbuehl/golunteer/backend/pkg/db/users"
 	_logger "github.com/johannesbuehl/golunteer/backend/pkg/logger"
 )
 
@@ -194,8 +195,8 @@ func (args Handler) removeSessionCookie() {
 
 // payload of the JSON webtoken
 type JWTPayload struct {
-	UserName string `json:"userName"`
-	TokenID  string `json:"tokenID"`
+	users.UserName `json:"userName"`
+	TokenID        string `json:"tokenID"`
 }
 
 // complete JSON webtoken
@@ -207,7 +208,7 @@ type JWT struct {
 // extracts the json webtoken from the request
 //
 // @returns (userName, tokenID, error)
-func extractJWT(c *fiber.Ctx) (string, string, error) {
+func extractJWT(c *fiber.Ctx) (users.UserName, string, error) {
 	// get the session-cookie
 	cookie := c.Cookies("session")
 
@@ -240,8 +241,8 @@ type userDB struct {
 }
 
 type UserChecked struct {
-	UserName string `json:"userName" db:"userName"`
-	Admin    bool   `json:"admin" db:"admin"`
+	users.UserName `json:"userName" db:"userName"`
+	Admin          bool `json:"admin" db:"admin"`
 }
 
 // checks wether the request is from a valid user

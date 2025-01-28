@@ -94,7 +94,7 @@ func (a *Handler) getEventsAvailabilities() {
 
 func (a *Handler) getEventUserAssignmentAvailability() {
 	// retrieve the assignments
-	if events, err := events.WithUserAvailability(a.UserName); err != nil {
+	if events, err := a.UserName.WithUserAvailability(); err != nil {
 		a.Status = fiber.StatusBadRequest
 
 		logger.Log().Msgf("getting events with tasks and user-availability failed: %v", err)
@@ -104,7 +104,7 @@ func (a *Handler) getEventUserAssignmentAvailability() {
 }
 
 func (a *Handler) getEventsUserPending() {
-	if events, err := events.UserPending(a.UserName); err != nil {
+	if events, err := a.UserName.UserPending(); err != nil {
 		a.Status = fiber.StatusInternalServerError
 
 		logger.Warn().Msgf("can't query database for users %q pending events: %v", a.UserName, err)
@@ -114,7 +114,7 @@ func (a *Handler) getEventsUserPending() {
 }
 
 func (a *Handler) getEventsUserPendingCount() {
-	if count, err := events.UserPendingCount(a.UserName); err != nil {
+	if count, err := a.UserName.UserPendingCount(); err != nil {
 		a.Status = fiber.StatusInternalServerError
 
 		logger.Warn().Msgf("can't query database for users %q pending events: %v", a.UserName, err)
@@ -125,7 +125,7 @@ func (a *Handler) getEventsUserPendingCount() {
 
 func (a *Handler) getEventsUserAssigned() {
 	// retrieve the events from the database
-	if events, err := events.User(a.UserName); err != nil {
+	if events, err := a.UserName.GetAssignedEvents(); err != nil {
 		a.Status = fiber.StatusBadRequest
 
 		logger.Log().Msgf("retrieval of user-assigned-events failed: %v", err)
@@ -172,7 +172,7 @@ func (a *Handler) putEventUserAvailability() {
 			}
 
 			// insert the availability into the database
-			if err := events.SetUserAvailability(eventID, availabilityID, a.UserName); err != nil {
+			if err := a.UserName.SetEventAvailability(eventID, availabilityID); err != nil {
 				a.Status = fiber.StatusInternalServerError
 
 				logger.Error().Msgf("setting user-event-availability failed: can't write availability to database: %v", err)

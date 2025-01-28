@@ -26,17 +26,21 @@ export interface TaskAssignment {
 	userName: string | null;
 }
 
-export interface User {
+export interface StateUser {
 	userName: string;
 	admin: boolean;
 }
+
+export type User = StateUser & {
+	possibleTasks: number[];
+};
 
 export type UserAddModify = User & {
 	password: string;
 };
 
 interface Zustand {
-	user: User | null;
+	user: StateUser | null;
 	tasks?: Task[];
 	availabilities?: Availability[];
 	patch: (zustand?: Partial<Zustand>) => void;

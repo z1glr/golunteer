@@ -247,48 +247,6 @@ func GetUserAvailability(eventID int, userName string) (*availabilities.Availabi
 	}
 }
 
-func WithUserAvailability(userName string) ([]EventWithAssignmentsUserAvailability, error) {
-	var events []EventWithAssignmentsUserAvailability
-
-	if err := db.DB.Select(&events, "SELECT EVENTS.eventID, EVENTS.description, EVENTS.date, USER_AVAILABILITIES.availabilityID FROM EVENTS LEFT JOIN USER_AVAILABILITIES ON EVENTS.eventID = USER_AVAILABILITIES.eventID AND USER_AVAILABILITIES.userName = $1", userName); err != nil {
-		return nil, err
-	} else {
-		// get the assignments for every event
-		for ii, event := range events {
-			if eventWithAssignments, err := event.EventWithAssignments.EventData.WithAssignments(); err != nil {
-				// remove the current event from the events
-				events = append(events[:ii], events[ii+1:]...)
-			} else {
-				events[ii].EventWithAssignments = eventWithAssignments
-			}
-		}
-
-		return events, nil
-	}
-}
-
-func UserPending(userName string) ([]EventData, error) {
-	var result []EventData
-
-	if err := db.DB.Select(&result, "SELECT eventID, date, description FROM EVENTS WHERE NOT EXISTS (SELECT 1 FROM USER_AVAILABILITIES WHERE USER_AVAILABILITIES.eventID = EVENTS.eventID AND USER_AVAILABILITIES.userName = ?)", userName); err != nil {
-		return nil, err
-	} else {
-		return result, nil
-	}
-}
-
-func UserPendingCount(userName string) (int, error) {
-	var result struct {
-		Count int `db:"count(*)"`
-	}
-
-	if err := db.DB.QueryRowx("SELECT count(*) FROM EVENTS WHERE NOT EXISTS (SELECT 1 FROM USER_AVAILABILITIES WHERE USER_AVAILABILITIES.eventID = EVENTS.eventID AND USER_AVAILABILITIES.userName = ?)", userName).StructScan(&result); err != nil {
-		return 0, err
-	} else {
-		return result.Count, nil
-	}
-}
-
 func Delete(eventId int) error {
 	_, err := db.DB.Exec("DELETE FROM EVENTS WHERE eventID = ?", eventId)
 
@@ -304,43 +262,6 @@ func Assignments(eventID int) ([]EventAssignment, error) {
 	} else {
 		return assignmentRows, nil
 	}
-}
-
-func User(userName string) ([]EventWithAssignments, error) {
-	// get all assignments of the user
-
-	// var eventsDB []EventWithAssignment
-	var eventsDB []EventData
-
-	// get all the events where the volunteer is assigned a task
-	if err := db.DB.Select(&eventsDB, "SELECT DISTINCT EVENTS.date, EVENTS.description, EVENTS.eventID FROM USER_ASSIGNMENTS INNER JOIN EVENTS ON USER_ASSIGNMENTS.eventID = EVENTS.eventID WHERE userName = $1", userName); err != nil {
-		return nil, err
-	} else {
-		// for each event create an event with assignments
-		events := make([]EventWithAssignments, len(eventsDB))
-
-		for ii, event := range eventsDB {
-			if eventsWithAssignment, err := event.WithAssignments(); err != nil {
-				logger.Logger.Error().Msgf("can't get assignments for event with eventID = %d: %v", event.EventID, err)
-
-				// remove the last element from the return-slice, since there is now one element less
-				if len(events) > 0 {
-					events = events[:len(events)-1]
-				}
-			} else {
-				events[ii] = eventsWithAssignment
-			}
-		}
-
-		return events, nil
-	}
-}
-
-// set the availability of an user for a specific event
-func SetUserAvailability(eventID, availabilityID int, userName string) error {
-	_, err := db.DB.Exec("INSERT INTO USER_AVAILABILITIES (userName, eventID, availabilityID) VALUES ($1, $2, $3) ON CONFLICT (userName, eventID) DO UPDATE SET availabilityID = $3", userName, eventID, availabilityID)
-
-	return err
 }
 
 // set the assignment of an user to a task for a specific event
