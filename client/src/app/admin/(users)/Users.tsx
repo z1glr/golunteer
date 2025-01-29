@@ -65,6 +65,9 @@ export default function Users() {
 			});
 
 			if (result.ok) {
+				// clear the users first from the zustand
+				zustand.getState().patch({ users: undefined });
+
 				users.reload();
 				setDeleteUser(undefined);
 			}
@@ -158,6 +161,10 @@ export default function Users() {
 				onOpenChange={setShowAddUser}
 				onSuccess={() => {
 					setShowAddUser(false);
+
+					// clear the users first from the zustand
+					zustand.getState().patch({ users: undefined });
+
 					users.reload();
 				}}
 			/>
@@ -169,6 +176,10 @@ export default function Users() {
 				}
 				onSuccess={() => {
 					users.reload();
+
+					// clear the users first from the zustand
+					zustand.getState().patch({ users: undefined });
+
 					setEditUser(undefined);
 				}}
 			/>
