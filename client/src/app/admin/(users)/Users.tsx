@@ -1,4 +1,4 @@
-import { apiCall } from "@/lib";
+import { apiCall, getUsers } from "@/lib";
 import zustand, { User } from "@/Zustand";
 import {
 	Button,
@@ -27,19 +27,9 @@ export default function Users() {
 
 	const users = useAsyncList<User>({
 		async load() {
-			const result = await apiCall("GET", "users");
-
-			if (result.ok) {
-				const users = (await result.json()) as User[];
-
-				return {
-					items: users,
-				};
-			} else {
-				return {
-					items: [],
-				};
-			}
+			return {
+				items: await getUsers(),
+			};
 		},
 		async sort({ items, sortDescriptor }) {
 			return {

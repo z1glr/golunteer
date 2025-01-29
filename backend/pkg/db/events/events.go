@@ -4,14 +4,26 @@ import (
 	"slices"
 
 	"github.com/johannesbuehl/golunteer/backend/pkg/db"
-	"github.com/johannesbuehl/golunteer/backend/pkg/db/availabilities"
 	"github.com/johannesbuehl/golunteer/backend/pkg/logger"
 )
 
+// empty UserName interface so that the functions of this package can accept UserName variables without a circular import
+type UserName interface{}
+type TaskID interface{}
+
+type EventID int
+
+type eventAvailabilities struct {
+	UserName       string `db:"userName"`
+	AvailabilityID int    `db:"availabilityID"`
+}
+
+type AvailabilityMap map[int][]string
+
 type EventData struct {
-	EventID     int    `db:"eventID" json:"eventID" validate:"required"`
-	Date        string `db:"date" json:"date" validate:"required"`
-	Description string `db:"description" json:"description"`
+	EventID     EventID `db:"eventID" json:"eventID" validate:"required"`
+	Date        string  `db:"date" json:"date" validate:"required"`
+	Description string  `db:"description" json:"description"`
 }
 
 type EventPatch struct {
@@ -20,7 +32,7 @@ type EventPatch struct {
 }
 
 type EventAssignment struct {
-	TaskID   int     `db:"taskID" json:"taskID"`
+	TaskID   TaskID  `db:"taskID" json:"taskID"`
 	TaskName string  `db:"taskName" json:"taskName"`
 	UserName *string `db:"userName" json:"userName"`
 }
@@ -32,7 +44,7 @@ type EventWithAssignments struct {
 
 type EventWithAvailabilities struct {
 	EventWithAssignments
-	Availabilities availabilities.AvailabilityMap `json:"availabilities"`
+	Availabilities AvailabilityMap `json:"availabilities"`
 }
 
 type EventWithAssignmentsUserAvailability struct {
@@ -49,7 +61,7 @@ type EventCreate struct {
 // transform the database-entry to an WithAssignments
 func (e EventData) WithAssignments() (EventWithAssignments, error) {
 	// get the assignments associated with the event
-	if assignemnts, err := Assignments(e.EventID); err != nil {
+	if assignemnts, err := e.EventID.Assignments(); err != nil {
 		return EventWithAssignments{}, err
 	} else {
 		return EventWithAssignments{
@@ -72,13 +84,37 @@ func (e EventWithAssignments) WithUserAvailability(userName string) (EventWithAs
 	}
 }
 
+func (eventID EventID) Availabilities() (AvailabilityMap, error) {
+	// get the availabilities for the event
+	var availabilitiesRows []eventAvailabilities
+
+	if err := db.DB.Select(&availabilitiesRows, "SELECT userName, availabilityID FROM USER_AVAILABILITIES WHERE eventID = ?", eventID); err != nil {
+		return nil, err
+	} else {
+		// transform the result into a map
+		eventAvailabilities := AvailabilityMap{}
+
+		// get the availabilities
+		for _, a := range availabilitiesRows {
+			// if there is no slice for this availability, create it
+			if _, exists := eventAvailabilities[a.AvailabilityID]; !exists {
+				eventAvailabilities[a.AvailabilityID] = make([]string, 0)
+			}
+
+			eventAvailabilities[a.AvailabilityID] = append(eventAvailabilities[a.AvailabilityID], a.UserName)
+		}
+
+		return eventAvailabilities, nil
+	}
+}
+
 func (e EventData) WithAvailabilities() (EventWithAvailabilities, error) {
 	// get the event with assignments
 	if event, err := e.WithAssignments(); err != nil {
 		return EventWithAvailabilities{}, err
 
 		// get the availabilities
-	} else if availabilities, err := availabilities.Event(e.EventID); err != nil {
+	} else if availabilities, err := e.EventID.Availabilities(); err != nil {
 		return EventWithAvailabilities{}, err
 	} else {
 		return EventWithAvailabilities{
@@ -141,7 +177,7 @@ func Update(event EventPatch) error {
 		} else {
 			type Task struct {
 				TaskID
-				EventID int `db:"eventID"`
+				EventID EventID `db:"eventID"`
 			}
 
 			// extract the rows that need to be deleted
@@ -235,25 +271,13 @@ func WithAvailabilities() ([]EventWithAvailabilities, error) {
 	}
 }
 
-func GetUserAvailability(eventID int, userName string) (*availabilities.AvailabilityID, error) {
-	var availabilityID struct {
-		AvailabilityID *availabilities.AvailabilityID `db:"availabilityID"`
-	}
-
-	if err := db.DB.QueryRowx("SELECT availabilityID FROM USER_AVAILABILITIES WHERE eventID = $1 AND userName = $2", eventID, userName).StructScan(&availabilityID); err != nil {
-		return availabilityID.AvailabilityID, err
-	} else {
-		return availabilityID.AvailabilityID, nil
-	}
-}
-
 func Delete(eventId int) error {
 	_, err := db.DB.Exec("DELETE FROM EVENTS WHERE eventID = ?", eventId)
 
 	return err
 }
 
-func Assignments(eventID int) ([]EventAssignment, error) {
+func (eventID EventID) Assignments() ([]EventAssignment, error) {
 	// get the assignments from the database
 	var assignmentRows []EventAssignment
 
@@ -265,7 +289,7 @@ func Assignments(eventID int) ([]EventAssignment, error) {
 }
 
 // set the assignment of an user to a task for a specific event
-func SetAssignment(eventID, taskID int, userName string) error {
+func (eventID EventID) SetAssignment(taskID TaskID, userName UserName) error {
 	_, err := db.DB.Exec("UPDATE USER_ASSIGNMENTS SET userName = $1 WHERE eventID = $2 AND taskID = $3", userName, eventID, taskID)
 
 	return err

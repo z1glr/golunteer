@@ -1,5 +1,5 @@
 import { DateFormatter as IntlDateFormatter } from "@internationalized/date";
-import zustand from "./Zustand";
+import zustand, { User } from "./Zustand";
 import { Availability } from "./app/admin/(availabilities)/AvailabilityEditor";
 
 export type AllString<T> = { [K in keyof T]: string };
@@ -190,9 +190,30 @@ export async function getAvailabilities(): Promise<Availability[]> {
 		if (result.ok) {
 			const availabilities = await result.json();
 
-			state.patch({ availabilities: availabilities });
+			state.patch({ availabilities });
 
 			return availabilities;
+		} else {
+			return [];
+		}
+	}
+}
+
+export async function getUsers(): Promise<User[]> {
+	// check wether it is cached in zustand
+	const state = zustand.getState();
+
+	if (!!state.users) {
+		return state.users;
+	} else {
+		const result = await apiCall<User[]>("GET", "users");
+
+		if (result.ok) {
+			const users = await result.json();
+
+			state.patch({ users });
+
+			return users;
 		} else {
 			return [];
 		}

@@ -7,6 +7,8 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/johannesbuehl/golunteer/backend/pkg/db"
 	"github.com/johannesbuehl/golunteer/backend/pkg/db/events"
+	"github.com/johannesbuehl/golunteer/backend/pkg/db/tasks"
+	"github.com/johannesbuehl/golunteer/backend/pkg/db/users"
 )
 
 func (a *Handler) postEvent() {
@@ -189,24 +191,25 @@ func (a *Handler) putEventAssignment() {
 		logger.Warn().Msg("setting event-assignment failed: user is no admin")
 
 		// retrieve the eventID from the query
-	} else if eventID := a.C.QueryInt("eventID", -1); eventID == -1 {
+	} else if eventID := events.EventID(a.C.QueryInt("eventID", -1)); eventID == -1 {
 		a.Status = fiber.StatusBadRequest
 
 		logger.Warn().Msg("setting event-assignment failed: query is missing \"eventID\"")
 
 		// retrieve the taskID from the query
-	} else if taskID := a.C.QueryInt("taskID", -1); taskID == -1 {
+	} else if taskID := tasks.TaskID(a.C.QueryInt("taskID", -1)); taskID == -1 {
 		a.Status = fiber.StatusBadRequest
 
 		logger.Log().Msg("setting event-assignment failed: query is missing \"taskID\"")
 
 		// parse the body
-	} else if userName := string(a.C.Body()); userName == "" {
+	} else if userName := users.UserName(a.C.Body()); userName == "" {
 		a.Status = fiber.StatusBadRequest
 
 		logger.Log().Msg("setting event-assignment failed: body is missing")
+
 		// check wether the user has actually entered an availability for the event
-	} else if availabilityID, err := events.GetUserAvailability(eventID, userName); err != nil {
+	} else if availabilityID, err := userName.GetUserAvailability(eventID); err != nil {
 		a.Status = fiber.StatusBadRequest
 
 		logger.Log().Msgf("setting event-assignment failed: can't check users availability: %v", err)
@@ -215,8 +218,18 @@ func (a *Handler) putEventAssignment() {
 
 		logger.Log().Msgf("setting event-assignment failed: user %q isn't available for event with eventID = %d", userName, eventID)
 
+		// check wether the user can be assigned for this task
+	} else if check, err := userName.CheckTask(taskID); err != nil {
+		a.Status = fiber.StatusInternalServerError
+
+		logger.Error().Msgf("setting event-assignment failed: can't check wether the task with taskID = %d is possible: %v", taskID, err)
+	} else if !check {
+		a.Status = fiber.StatusBadRequest
+
+		logger.Log().Msgf("setting event-assignment failed: task with taskID = %d is not possible for user", taskID)
+
 		// set the availability in the database
-	} else if err := events.SetAssignment(eventID, taskID, userName); err != nil {
+	} else if err := eventID.SetAssignment(taskID, userName); err != nil {
 		a.Status = fiber.StatusBadRequest
 
 		logger.Warn().Msgf("setting event-assignment failed: can't write to database: %v", err)

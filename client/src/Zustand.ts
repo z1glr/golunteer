@@ -43,6 +43,7 @@ interface Zustand {
 	user: StateUser | null;
 	tasks?: Task[];
 	availabilities?: Availability[];
+	users?: User[];
 	patch: (zustand?: Partial<Zustand>) => void;
 	reset: (zustand?: Partial<Zustand>) => void;
 }

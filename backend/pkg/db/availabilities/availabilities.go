@@ -1,8 +1,6 @@
 package availabilities
 
-import (
-	"github.com/johannesbuehl/golunteer/backend/pkg/db"
-)
+import "github.com/johannesbuehl/golunteer/backend/pkg/db"
 
 type AvailabilityID int
 

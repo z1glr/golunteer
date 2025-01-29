@@ -11,9 +11,10 @@ import {
 	DropdownTrigger,
 } from "@heroui/react";
 import { EventWithAvailabilities } from "./page";
-import { ReactElement } from "react";
+import { ReactElement, useEffect, useState } from "react";
 import { Availability } from "../admin/(availabilities)/AvailabilityEditor";
-import { apiCall, classNames } from "@/lib";
+import { apiCall, classNames, getUsers } from "@/lib";
+import { useAsyncList } from "@react-stately/data";
 
 export default function VolunteerSelector({
 	event,
@@ -26,6 +27,46 @@ export default function VolunteerSelector({
 	getAvailabilityById: (availabilityID: number) => Availability;
 	onReloadRequest: () => void;
 }) {
+	const [selectableUsers, setSelectableUsers] = useState<[string, string[]][]>(
+		[],
+	);
+
+	const users = useAsyncList({
+		async load() {
+			return {
+				items: await getUsers(),
+			};
+		},
+	});
+
+	useEffect(() => {
+		// create a set with all the users that can be assigned to this task
+		const validUsers = new Set(
+			users.items
+				.filter((user) => user.possibleTasks.includes(task.taskID))
+				.map((user) => user.userName),
+		);
+
+		setSelectableUsers(
+			Object.entries(event.availabilities)
+				.map(
+					([availabilityID, availabilityUsers]):
+						| [string, string[]]
+						| undefined => {
+						const thisUsers = availabilityUsers.filter((userName) =>
+							validUsers.has(userName),
+						);
+
+						// if there is at least one user over, return it
+						if (thisUsers.length > 0) {
+							return [availabilityID, thisUsers];
+						}
+					},
+				)
+				.filter((i) => !!i),
+		);
+	}, [event.availabilities, users.items, task.taskID]);
+
 	async function sendVolunteerAssignment(
 		eventID: number,
 		taskID: number,
@@ -77,7 +118,7 @@ export default function VolunteerSelector({
 					sendVolunteerAssignment(event.eventID, task.taskID, a as string)
 				}
 			>
-				{Object.entries(event.availabilities).map(
+				{selectableUsers.map(
 					([availabilityId, volunteers], iAvailability, aAvailabilities) => (
 						<DropdownSection
 							key={availabilityId}

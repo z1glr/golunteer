@@ -4,8 +4,10 @@ import (
 	"github.com/johannesbuehl/golunteer/backend/pkg/db"
 )
 
+type TaskID int
+
 type TaskDB struct {
-	TaskID int `json:"taskID" db:"taskID" validate:"required"`
+	TaskID TaskID `json:"taskID" db:"taskID" validate:"required"`
 	Task   `valdate:"required" `
 }
 
@@ -25,12 +27,12 @@ func GetSlice() ([]TaskDB, error) {
 
 }
 
-func GetMap() (map[int]Task, error) {
+func GetMap() (map[TaskID]Task, error) {
 	if tasksRaw, err := GetSlice(); err != nil {
 		return nil, err
 	} else {
 		// convert the result in a map
-		tasks := map[int]Task{}
+		tasks := map[TaskID]Task{}
 
 		for _, a := range tasksRaw {
 			tasks[a.TaskID] = Task{
