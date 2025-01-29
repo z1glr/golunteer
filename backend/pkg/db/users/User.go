@@ -66,7 +66,7 @@ func (userName UserName) TokenID() (string, error) {
 }
 
 type UserAdd struct {
-	UserName      `json:"userName" validate:"required" db:"userName"`
+	UserName      UserName       `json:"userName" validate:"required" db:"userName"`
 	Password      string         `json:"password" validate:"required,min=12,max=64"`
 	Admin         bool           `json:"admin" db:"admin"`
 	PossibleTasks []tasks.TaskID `json:"possibleTasks" validate:"required"`
@@ -197,7 +197,7 @@ func (userName UserName) SetTasks(tasks []tasks.TaskID) error {
 func (userName UserName) CheckTask(taskID tasks.TaskID) (bool, error) {
 	var check bool
 
-	if err := db.DB.Select(&check, "SELECT 1 FROM USER_TASKS WHERE userName = $1 AND taskID = $2", userName, taskID); err != nil {
+	if err := db.DB.Get(&check, "SELECT 1 FROM USER_TASKS WHERE userName = $1 AND taskID = $2", userName, taskID); err != nil {
 		return false, err
 	} else {
 		return check, nil
@@ -207,7 +207,22 @@ func (userName UserName) CheckTask(taskID tasks.TaskID) (bool, error) {
 func (userName UserName) UserPending() ([]events.EventData, error) {
 	var result []events.EventData
 
-	if err := db.DB.Select(&result, "SELECT eventID, date, description FROM EVENTS WHERE NOT EXISTS (SELECT 1 FROM USER_AVAILABILITIES WHERE USER_AVAILABILITIES.eventID = EVENTS.eventID AND USER_AVAILABILITIES.userName = ?)", userName); err != nil {
+	if err := db.DB.Select(&result, `SELECT eventID, date, description
+	FROM EVENTS
+	WHERE NOT EXISTS (
+		SELECT 1
+		FROM USER_AVAILABILITIES
+		WHERE USER_AVAILABILITIES.eventID = EVENTS.eventID
+		AND USER_AVAILABILITIES.userName = $1
+	)
+	AND EXISTS (
+		SELECT 1
+		FROM USER_TASKS
+		JOIN USER_ASSIGNMENTS ON USER_TASKS.taskID = USER_ASSIGNMENTS.taskID
+		WHERE USER_TASKS.userName = $1
+		AND USER_ASSIGNMENTS.eventID = EVENTS.eventID
+	)
+	AND date > datetime('now')`, userName); err != nil {
 		return nil, err
 	} else {
 		return result, nil
@@ -233,7 +248,7 @@ func (userName UserName) GetAssignedEvents() ([]events.EventWithAssignments, err
 	var eventsDB []events.EventData
 
 	// get all the events where the volunteer is assigned a task
-	if err := db.DB.Select(&eventsDB, "SELECT DISTINCT EVENTS.date, EVENTS.description, EVENTS.eventID FROM USER_ASSIGNMENTS INNER JOIN EVENTS ON USER_ASSIGNMENTS.eventID = EVENTS.eventID WHERE userName = $1", userName); err != nil {
+	if err := db.DB.Select(&eventsDB, "SELECT DISTINCT EVENTS.date, EVENTS.description, EVENTS.eventID FROM USER_ASSIGNMENTS INNER JOIN EVENTS ON USER_ASSIGNMENTS.eventID = EVENTS.eventID WHERE userName = $1 AND EVENTS.date > datetime('now')", userName); err != nil {
 		return nil, err
 	} else {
 		// for each event create an event with assignments
