@@ -82,12 +82,13 @@ export default function Header({ sites }: { sites: SiteLink[] }) {
 	return (
 		<div>
 			<Navbar maxWidth="full">
-				<NavbarContent>
-					<NavbarMenuToggle className="sm:hidden" />
-					<NavbarBrand onClick={() => router.push("/")}>
-						<h1 className="font-display-headline text-xl">Golunteer</h1>
-					</NavbarBrand>
-				</NavbarContent>
+				<NavbarMenuToggle className="sm:hidden" />
+				<NavbarBrand
+					onClick={() => router.push("/")}
+					className="cursor-pointer"
+				>
+					<h1 className="font-display-headline text-xl">Golunteer</h1>
+				</NavbarBrand>
 				{user !== null ? (
 					<>
 						<NavbarMenu className="pt-4">
