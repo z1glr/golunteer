@@ -161,7 +161,7 @@ func Create(event EventCreate) error {
 
 func Update(event EventPatch) error {
 	// update the event itself
-	if _, err := db.DB.NamedExec("UPDATE EVENTS SET description = :description, date = :date WHERE eventID = :id", event); err != nil {
+	if _, err := db.DB.NamedExec("UPDATE EVENTS SET description = :description, date = :date WHERE eventID = :eventID", event); err != nil {
 		return err
 
 		// get the tasks currently assigned to the event
