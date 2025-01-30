@@ -1,8 +1,8 @@
 "use client";
 
+import Loading from "@/components/Loading";
 import { apiCall } from "@/lib";
 import zustand, { StateUser } from "@/Zustand";
-import { Spinner } from "@heroui/react";
 import { usePathname, useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 
@@ -58,7 +58,7 @@ export default function Main({ children }: { children: React.ReactNode }) {
 
 	switch (auth) {
 		case AuthState.Loading:
-			return <Spinner label="Loading..." />;
+			return <Loading />;
 		case AuthState.LoggedIn:
 		case AuthState.LoginScreen:
 			return children;

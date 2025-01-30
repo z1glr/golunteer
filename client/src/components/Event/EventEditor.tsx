@@ -15,12 +15,12 @@ import {
 	ModalContent,
 	ModalFooter,
 	ModalHeader,
-	Spinner,
 	Textarea,
 } from "@heroui/react";
 import { EventData } from "@/Zustand";
 import { useAsyncList } from "@react-stately/data";
 import { getTasks } from "@/lib";
+import Loading from "../Loading";
 
 export interface EventSubmitData {
 	eventID: number;
@@ -128,7 +128,7 @@ export default function EventEditor(props: {
 										</div>
 									))
 							) : (
-								<Spinner label="Loading" />
+								<Loading />
 							)}
 						</CheckboxGroup>
 					</ModalBody>
