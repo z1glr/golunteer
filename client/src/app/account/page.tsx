@@ -2,6 +2,7 @@
 
 import { apiCall, validatePassword as validatePassword } from "@/lib";
 import {
+	Alert,
 	Button,
 	Card,
 	CardBody,
@@ -14,6 +15,8 @@ import { FormEvent, useState } from "react";
 
 export default function Account() {
 	const [password, setPassword] = useState("");
+	const [showSuccess, setShowSuccess] = useState(false);
+
 	const errors = validatePassword(password);
 
 	async function changePassword(e: FormEvent<HTMLFormElement>) {
@@ -23,6 +26,7 @@ export default function Account() {
 
 		if (result.ok) {
 			setPassword("");
+			setShowSuccess(true);
 		}
 	}
 
@@ -42,10 +46,10 @@ export default function Account() {
 							changePassword(e);
 						}}
 					>
-						<CardBody>
+						<CardBody className="flex flex-col gap-2">
 							<Input
 								isRequired
-								label="Password"
+								label="New password"
 								name="password"
 								variant="bordered"
 								value={password}
@@ -59,6 +63,16 @@ export default function Account() {
 									</ul>
 								}
 							/>
+							<Alert
+								hideIconWrapper
+								isVisible={showSuccess}
+								onClose={() => setShowSuccess(false)}
+								title="Success"
+								color="success"
+								variant="faded"
+							>
+								Password changed successfully
+							</Alert>
 						</CardBody>
 						<CardFooter>
 							<Button
