@@ -23,8 +23,8 @@ type User struct {
 }
 
 type UserChangePassword struct {
-	UserName `json:"userName" validate:"required" db:"userName"`
-	Password string `json:"password" validate:"required,min=12"`
+	UserName UserName `json:"userName" validate:"required" db:"userName"`
+	Password string   `json:"password" validate:"required,min=12"`
 }
 
 // hashes a password
@@ -160,16 +160,16 @@ func (userName UserName) ChangePassword(password string) (string, error) {
 		return "", err
 	} else {
 		execStruct := struct {
-			UserName `db:"userName"`
-			Password []byte `db:"password"`
-			TokenID  string `db:"tokenID"`
+			UserName UserName `db:"userName"`
+			Password []byte   `db:"password"`
+			TokenID  string   `db:"tokenID"`
 		}{
 			UserName: userName,
 			Password: hash,
 			TokenID:  uuid.NewString(),
 		}
 
-		if _, err := db.DB.NamedExec("UPDATE USERS SET tokenID = :tokenID, password = :password WHERE name = :userName", execStruct); err != nil {
+		if _, err := db.DB.NamedExec("UPDATE USERS SET tokenID = :tokenID, password = :password WHERE userName = :userName", execStruct); err != nil {
 			return "", err
 		} else {
 			return execStruct.TokenID, nil
