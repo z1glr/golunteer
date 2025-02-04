@@ -1,0 +1,12 @@
+.git
+
+backend/.devcontainer
+backend/.vscode
+backend/.gitignore
+backend/logs
+backend/config.yaml
+
+client/node_modules
+client/.gitignore
+client/out
+client/.next

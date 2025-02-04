@@ -60,6 +60,13 @@ func setup() {
 	// create a jwt-signature
 	config.ClientSession.JwtSignature = createPassword(100)
 
+	// setp the database
+	if dbSetupInstructions, err := os.ReadFile("setup.sql"); err != nil {
+		panic("can't read database-setup")
+	} else {
+		DB.MustExec(string(dbSetupInstructions))
+	}
+
 	// write the modified config-file
 	WriteConfig()
 

@@ -22,8 +22,8 @@ func init() {
 	DB.MustExec("PRAGMA foreign_keys = ON")
 
 	// create the tables if they don't exist
-	if dbSetupInstructions, err := os.ReadFile("setup.sql"); err != nil {
-		panic("can't read database-setup")
+	if dbSetupInstructions, err := os.ReadFile("tables.sql"); err != nil {
+		panic("can't read database-tables-setup")
 	} else {
 		DB.MustExec(string(dbSetupInstructions))
 
