@@ -18,7 +18,7 @@ func (a *Handler) getTasks() {
 func (a *Handler) postTask() {
 	// check admin
 	if !a.Admin {
-		logger.Log().Msgf("user is not admin")
+		logger.Info().Msgf("user is not admin")
 
 		a.Status = fiber.StatusUnauthorized
 	} else {
@@ -26,13 +26,13 @@ func (a *Handler) postTask() {
 		var task tasks.Task
 
 		if err := a.C.BodyParser(&task); err != nil {
-			logger.Log().Msgf("can't parse body: %v", err)
+			logger.Info().Msgf("can't parse body: %v", err)
 
 			a.Status = fiber.StatusBadRequest
 
 			// validate the body
 		} else if err := validate.Struct(&task); err != nil {
-			logger.Log().Msgf("invalid body: %v", err)
+			logger.Info().Msgf("invalid body: %v", err)
 
 			a.Status = fiber.StatusBadRequest
 
@@ -48,7 +48,7 @@ func (a *Handler) postTask() {
 func (a *Handler) patchTask() {
 	// check admin
 	if !a.Admin {
-		logger.Log().Msgf("user is not admin")
+		logger.Info().Msgf("user is not admin")
 
 		a.Status = fiber.StatusUnauthorized
 	} else {
@@ -56,13 +56,13 @@ func (a *Handler) patchTask() {
 		var task tasks.TaskDB
 
 		if err := a.C.BodyParser(&task); err != nil {
-			logger.Log().Msgf("can't parse body: %v", err)
+			logger.Info().Msgf("can't parse body: %v", err)
 
 			a.Status = fiber.StatusBadRequest
 
 			// validate the body
 		} else if err := validate.Struct(&task); err != nil {
-			logger.Log().Msgf("invalid body: %v", err)
+			logger.Info().Msgf("invalid body: %v", err)
 
 			a.Status = fiber.StatusBadRequest
 
@@ -84,7 +84,7 @@ func (a *Handler) deleteTask() {
 
 		// parse the query
 	} else if taskID := a.C.QueryInt("taskID", -1); taskID == -1 {
-		logger.Log().Msg("task-deletion failed: invalid query: doesn't include \"taskID\"")
+		logger.Info().Msg("task-deletion failed: invalid query: doesn't include \"taskID\"")
 
 		a.Status = fiber.StatusBadRequest
 

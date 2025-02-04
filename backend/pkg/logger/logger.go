@@ -37,11 +37,7 @@ func init() {
 		Out:        os.Stdout,
 		TimeFormat: time.DateTime,
 		FormatLevel: func(i interface{}) string {
-			if i == nil {
-				return "| LOG   |"
-			} else {
-				return strings.ToUpper(fmt.Sprintf("| %-6s|", i))
-			}
+			return strings.ToUpper(fmt.Sprintf("| %-6s|", i))
 		},
 		FormatFieldName: func(i interface{}) string {
 			return fmt.Sprintf("%s", i)

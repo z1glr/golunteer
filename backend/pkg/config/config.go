@@ -2,7 +2,9 @@ package config
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"time"
@@ -51,6 +53,8 @@ func (config ConfigStruct) SignJWT(val any) (string, error) {
 }
 
 func LoadConfig() ConfigStruct {
+	ensureConfigExists()
+
 	Config := ConfigYaml{}
 
 	yamlFile, err := os.ReadFile(CONFIG_PATH)
@@ -90,6 +94,32 @@ func LoadConfig() ConfigStruct {
 	}
 }
 
+func ensureConfigExists() {
+	// if the config path doesn't exist, copy the example config there
+	if _, err := os.Stat(CONFIG_PATH); errors.Is(err, os.ErrNotExist) {
+		source, err := os.Open("config-default.yaml")
+
+		if err == nil {
+			defer source.Close()
+
+			destination, err := os.Create(CONFIG_PATH)
+
+			if err == nil {
+				defer destination.Close()
+
+				io.Copy(destination, source)
+			}
+		}
+	}
+}
+
 func init() {
+	// check for the config passed as an argument
+	if len(os.Args) == 2 {
+		CONFIG_PATH = os.Args[1]
+	} else {
+		CONFIG_PATH = "config.yaml"
+	}
+
 	Config = LoadConfig()
 }

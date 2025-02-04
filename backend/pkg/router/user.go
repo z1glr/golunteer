@@ -10,7 +10,7 @@ func (a *Handler) getUsers() {
 	if !a.Admin {
 		a.Status = fiber.StatusForbidden
 
-		logger.Log().Msgf("user is no admin")
+		logger.Info().Msgf("user is no admin")
 	} else if users, err := users.Get(); err != nil {
 		a.Status = fiber.StatusInternalServerError
 
@@ -26,7 +26,7 @@ func (a *Handler) postUser() {
 	if !a.Admin {
 		a.Status = fiber.StatusForbidden
 
-		logger.Log().Msgf("user is no admin")
+		logger.Info().Msgf("user is no admin")
 	} else {
 		// parse the body
 		var body users.UserAdd
@@ -54,7 +54,7 @@ func (a *Handler) putPassword() {
 	var body users.UserChangePassword
 
 	if err := a.C.BodyParser(&body); err != nil {
-		logger.Log().Msgf("can't parse body: %v", err)
+		logger.Info().Msgf("can't parse body: %v", err)
 
 		a.Status = fiber.StatusBadRequest
 
@@ -98,7 +98,7 @@ func (a *Handler) patchUser() {
 	if !a.Admin {
 		a.Status = fiber.StatusForbidden
 
-		logger.Log().Msgf("user is no admin")
+		logger.Info().Msgf("user is no admin")
 	} else {
 		// parse the body
 		var body struct {
@@ -109,7 +109,7 @@ func (a *Handler) patchUser() {
 		if err := a.C.BodyParser(&body); err != nil {
 			a.Status = fiber.StatusBadRequest
 
-			logger.Log().Msgf("can't parse body: %v", err)
+			logger.Info().Msgf("can't parse body: %v", err)
 
 			// prevent to demoting self from admin
 		} else if !body.Admin && body.UserName == a.UserName {
@@ -196,19 +196,19 @@ func (a *Handler) deleteUser() {
 
 		// get the username from the query
 	} else if userName := a.C.Query("userName"); userName == "" {
-		logger.Log().Msg("user-deletion failed: query is missing \"userName\"")
+		logger.Info().Msg("user-deletion failed: query is missing \"userName\"")
 
 		a.Status = fiber.StatusBadRequest
 
 		// check wether the user tries to delete himself
 	} else if users.UserName(userName) == a.UserName {
-		logger.Log().Msg("user-deletion failed: self-deletion is illegal")
+		logger.Info().Msg("user-deletion failed: self-deletion is illegal")
 
 		a.Status = fiber.StatusBadRequest
 
 		// check wether the user tries to delete the admin
 	} else if userName == "admin" {
-		logger.Log().Msg("user-deletion failed: admin-deletion is illegal")
+		logger.Info().Msg("user-deletion failed: admin-deletion is illegal")
 
 		a.Status = fiber.StatusBadRequest
 

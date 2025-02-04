@@ -1,0 +1,25 @@
+services:
+  app:
+    image: z1glr/golunteer:latest
+    build: .
+    ports:
+      - 80:80
+    volumes:
+      - database:/usr/bin/app/data
+      - logs:/usr/bin/app/logs
+      - ./config.yaml:/usr/bin/app/config.yaml
+    restart: unless-stopped
+  
+volumes:
+  database:
+    driver: local
+    driver_opts:
+      type: none
+      device: "./data"
+      o: bind
+  logs:
+    driver: local
+    driver_opts:
+      type: none
+      device: "./logs"
+      o: bind

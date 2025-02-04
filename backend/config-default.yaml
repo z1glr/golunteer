@@ -1,0 +1,7 @@
+log_level: INFO
+database: data/database.db
+server:
+  port: 80
+client_session:
+  jwt_signature: JWT_SIGNATURE
+  expire: 168h

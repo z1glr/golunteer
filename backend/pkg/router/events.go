@@ -24,13 +24,13 @@ func (a *Handler) postEvent() {
 		if err := a.C.BodyParser(&body); err != nil {
 			a.Status = fiber.StatusBadRequest
 
-			logger.Log().Msgf("can't parse body: %v", err)
+			logger.Info().Msgf("can't parse body: %v", err)
 
 			// validate the parsed body
 		} else if err := validate.Struct(body); err != nil {
 			a.Status = fiber.StatusBadRequest
 
-			logger.Log().Msgf("invalid body: %v", err)
+			logger.Info().Msgf("invalid body: %v", err)
 
 			// create the event
 		} else if err := events.Create(body); err != nil {
@@ -52,13 +52,13 @@ func (a *Handler) patchEvent() {
 		if err := a.C.BodyParser(&body); err != nil {
 			a.Status = fiber.StatusBadRequest
 
-			logger.Log().Msgf("can't parse body: %v", err)
+			logger.Info().Msgf("can't parse body: %v", err)
 
 			// validate the body
 		} else if err := validate.Struct(body); err != nil {
 			a.Status = fiber.StatusBadRequest
 
-			logger.Log().Msgf("ivnalid body: %v", err)
+			logger.Info().Msgf("ivnalid body: %v", err)
 
 			// update the event
 		} else if err := events.Update(body); err != nil {
@@ -99,7 +99,7 @@ func (a *Handler) getEventUserAssignmentAvailability() {
 	if events, err := a.UserName.WithUserAvailability(); err != nil {
 		a.Status = fiber.StatusBadRequest
 
-		logger.Log().Msgf("getting events with tasks and user-availability failed: %v", err)
+		logger.Info().Msgf("getting events with tasks and user-availability failed: %v", err)
 	} else {
 		a.Data = events
 	}
@@ -130,7 +130,7 @@ func (a *Handler) getEventsUserAssigned() {
 	if events, err := a.UserName.GetAssignedEvents(); err != nil {
 		a.Status = fiber.StatusBadRequest
 
-		logger.Log().Msgf("retrieval of user-assigned-events failed: %v", err)
+		logger.Info().Msgf("retrieval of user-assigned-events failed: %v", err)
 	} else {
 		a.Data = events
 	}
@@ -141,7 +141,7 @@ func (a *Handler) putEventUserAvailability() {
 	if eventID := a.C.QueryInt("eventID", -1); eventID == -1 {
 		a.Status = fiber.StatusBadRequest
 
-		logger.Log().Msg("setting user-event-availability failed: query is missing \"eventID\"")
+		logger.Info().Msg("setting user-event-availability failed: query is missing \"eventID\"")
 	} else {
 		// parse the body
 		body := a.C.Body()
@@ -149,7 +149,7 @@ func (a *Handler) putEventUserAvailability() {
 		if availabilityID, err := strconv.Atoi(string(body)); err != nil {
 			a.Status = fiber.StatusBadRequest
 
-			logger.Log().Msgf("setting user-event-availability failed: can't get parse: %v", err)
+			logger.Info().Msgf("setting user-event-availability failed: can't get parse: %v", err)
 		} else {
 			// if there was already a task assigned for this user-event-combi, remove it
 			var taskIDs []int
@@ -200,23 +200,23 @@ func (a *Handler) putEventAssignment() {
 	} else if taskID := tasks.TaskID(a.C.QueryInt("taskID", -1)); taskID == -1 {
 		a.Status = fiber.StatusBadRequest
 
-		logger.Log().Msg("setting event-assignment failed: query is missing \"taskID\"")
+		logger.Info().Msg("setting event-assignment failed: query is missing \"taskID\"")
 
 		// parse the body
 	} else if userName := users.UserName(a.C.Body()); userName == "" {
 		a.Status = fiber.StatusBadRequest
 
-		logger.Log().Msg("setting event-assignment failed: body is missing")
+		logger.Info().Msg("setting event-assignment failed: body is missing")
 
 		// check wether the user has actually entered an availability for the event
 	} else if availabilityID, err := userName.GetUserAvailability(eventID); err != nil {
 		a.Status = fiber.StatusBadRequest
 
-		logger.Log().Msgf("setting event-assignment failed: can't check users availability: %v", err)
+		logger.Info().Msgf("setting event-assignment failed: can't check users availability: %v", err)
 	} else if availabilityID == nil {
 		a.Status = fiber.StatusConflict
 
-		logger.Log().Msgf("setting event-assignment failed: user %q isn't available for event with eventID = %d", userName, eventID)
+		logger.Info().Msgf("setting event-assignment failed: user %q isn't available for event with eventID = %d", userName, eventID)
 
 		// check wether the user can be assigned for this task
 	} else if check, err := userName.CheckTask(taskID); err != nil {
@@ -226,7 +226,7 @@ func (a *Handler) putEventAssignment() {
 	} else if !check {
 		a.Status = fiber.StatusBadRequest
 
-		logger.Log().Msgf("setting event-assignment failed: task with taskID = %d is not possible for user", taskID)
+		logger.Info().Msgf("setting event-assignment failed: task with taskID = %d is not possible for user", taskID)
 
 		// set the availability in the database
 	} else if err := eventID.SetAssignment(taskID, userName); err != nil {
@@ -273,7 +273,7 @@ func (a *Handler) deleteEvent() {
 		a.Status = fiber.StatusForbidden
 		// -1 can't be valid
 	} else if eventId := a.C.QueryInt("eventID", -1); eventId == -1 {
-		logger.Log().Msgf("event-delete failed: \"eventID\" is missing in query")
+		logger.Info().Msgf("event-delete failed: \"eventID\" is missing in query")
 
 		a.Status = fiber.StatusBadRequest
 	} else if err := events.Delete(eventId); err != nil {
@@ -282,6 +282,6 @@ func (a *Handler) deleteEvent() {
 
 		a.Status = fiber.StatusInternalServerError
 	} else {
-		logger.Log().Msgf("deleted event with eventID %d", eventId)
+		logger.Info().Msgf("deleted event with eventID %d", eventId)
 	}
 }

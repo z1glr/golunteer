@@ -5,6 +5,7 @@ backend/.vscode
 backend/.gitignore
 backend/logs
 backend/config.yaml
+backend/html
 
 client/node_modules
 client/.gitignore

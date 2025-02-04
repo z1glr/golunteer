@@ -1,7 +1,10 @@
 package router
 
 import (
+	"errors"
 	"fmt"
+	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/go-playground/validator/v10"
@@ -129,6 +132,25 @@ func init() {
 	app.Post("/api/login", handleLogin)
 	app.Get("/api/logout", handleLogout)
 
+	app.Use(func(c *fiber.Ctx) error {
+		path := c.Path()
+
+		if _, err := os.Stat(filepath.Join("html", path)); errors.Is(err, os.ErrNotExist) {
+			htmlPath := path + ".html"
+
+			if _, err := os.Stat(filepath.Join("html", htmlPath)); err == nil {
+				c.Path(htmlPath)
+			} else {
+				logger.Debug().Msgf("%q", err)
+			}
+		}
+
+		c.Next()
+
+		return nil
+	})
+	app.Static("/", "html")
+
 	// register the registered endpoints
 	for method, handlers := range endpoints {
 		for address, handler := range handlers {
@@ -146,7 +168,7 @@ func init() {
 				} else if !loggedIn {
 					args.Status = fiber.StatusUnauthorized
 
-					logger.Log().Msgf("user not authorized")
+					logger.Info().Msgf("user not authorized")
 				} else {
 					handler(&args)
 				}

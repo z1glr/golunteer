@@ -30,13 +30,13 @@ func (a *Handler) postAvailability() {
 		if err := a.C.BodyParser(&body); err != nil {
 			a.Status = fiber.StatusBadRequest
 
-			logger.Log().Msgf("can't parse body: %v", err)
+			logger.Info().Msgf("can't parse body: %v", err)
 
 			// validate the body
 		} else if err := validate.Struct(&body); err != nil {
 			a.Status = fiber.StatusBadRequest
 
-			logger.Log().Msgf("invalid body: %v", err)
+			logger.Info().Msgf("invalid body: %v", err)
 
 		} else if err := availabilities.Add(body); err != nil {
 			a.Status = fiber.StatusInternalServerError
@@ -60,13 +60,13 @@ func (a *Handler) patchAvailabilitiy() {
 		if err := a.C.BodyParser(&body); err != nil {
 			a.Status = fiber.StatusBadRequest
 
-			logger.Log().Msgf("can't parse body: %v", err)
+			logger.Info().Msgf("can't parse body: %v", err)
 
 			// validate the body
 		} else if err := validate.Struct(&body); err != nil {
 			a.Status = fiber.StatusBadRequest
 
-			logger.Log().Msgf("invalid body: %v", err)
+			logger.Info().Msgf("invalid body: %v", err)
 		} else if err := availabilities.Update(body); err != nil {
 			a.Status = fiber.StatusInternalServerError
 
@@ -84,7 +84,7 @@ func (a *Handler) deleteAvailability() {
 
 		// parse the query
 	} else if taskID := a.C.QueryInt("availabilityID", -1); taskID == -1 {
-		logger.Log().Msg("availability-deletion failed: invalid query: doesn't include \"availabilityID\"")
+		logger.Info().Msg("availability-deletion failed: invalid query: doesn't include \"availabilityID\"")
 
 		a.Status = fiber.StatusBadRequest
 
