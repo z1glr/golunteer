@@ -7,7 +7,6 @@ services:
     volumes:
       - database:/usr/bin/app/data
       - logs:/usr/bin/app/logs
-      - ./config.yaml:/usr/bin/app/config.yaml
     restart: unless-stopped
   
 volumes:
