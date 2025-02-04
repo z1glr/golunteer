@@ -2,8 +2,6 @@ services:
   app:
     image: z1glr/golunteer:latest
     build: .
-    ports:
-      - 80:80
     volumes:
       - database:/usr/bin/app/data
       - logs:/usr/bin/app/logs
@@ -22,3 +20,4 @@ volumes:
       type: none
       device: "./logs"
       o: bind
+
