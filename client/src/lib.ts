@@ -144,8 +144,10 @@ export function validatePassword(password: string): string[] {
 	return errors;
 }
 
+export type TaskID = number;
+
 export interface Task {
-	taskID: number | undefined;
+	taskID: TaskID | undefined;
 	taskName: string;
 	enabled: boolean;
 }
@@ -214,6 +216,27 @@ export async function getUsers(): Promise<User[]> {
 			state.patch({ users });
 
 			return users;
+		} else {
+			return [];
+		}
+	}
+}
+
+export async function getUserTasks(): Promise<TaskID[]> {
+	// check wether it is cached in zustand
+	const state = zustand.getState();
+
+	if (!!state.userTasks) {
+		return state.userTasks;
+	} else {
+		const result = await apiCall<TaskID[]>("GET", "user/tasks");
+
+		if (result.ok) {
+			const userTasks = await result.json();
+
+			state.patch({ userTasks });
+
+			return userTasks;
 		} else {
 			return [];
 		}

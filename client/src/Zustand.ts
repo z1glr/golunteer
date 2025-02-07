@@ -1,7 +1,7 @@
 "use client";
 
 import { create } from "zustand";
-import { Task } from "./lib";
+import { Task, TaskID } from "./lib";
 import { Availability } from "./app/admin/(availabilities)/AvailabilityEditor";
 
 export interface BaseEvent {
@@ -41,6 +41,7 @@ export type UserAddModify = User & {
 
 interface Zustand {
 	user: StateUser | null;
+	userTasks?: TaskID[];
 	tasks?: Task[];
 	availabilities?: Availability[];
 	users?: User[];

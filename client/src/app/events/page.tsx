@@ -2,7 +2,7 @@
 import AddEvent from "@/components/Event/AddEvent";
 import AssignmentTable from "@/components/Event/AssignmentTable";
 import Event from "@/components/Event/Event";
-import { apiCall } from "@/lib";
+import { apiCall, getUserTasks } from "@/lib";
 import zustand, { EventDataWithAvailability } from "@/Zustand";
 import { Add } from "@carbon/icons-react";
 import { Button, Tab, Tabs } from "@heroui/react";
@@ -37,6 +37,14 @@ export default function Events() {
 		},
 	});
 
+	const userTasks = useAsyncList({
+		async load() {
+			return {
+				items: await getUserTasks(),
+			};
+		},
+	});
+
 	function showEvent(event: EventDataWithAvailability): boolean {
 		switch (filter) {
 			case "assigned":
@@ -45,11 +53,15 @@ export default function Events() {
 				});
 
 			case "pending":
-				return event.availability === null;
+				return event.availability === null && showAvailabilitySelector(event);
 
 			default:
 				return true;
 		}
+	}
+
+	function showAvailabilitySelector(event: EventDataWithAvailability): boolean {
+		return event.tasks.some((t) => userTasks.items.includes(t.taskID));
 	}
 
 	return (
@@ -75,7 +87,9 @@ export default function Events() {
 							tasks={e.tasks}
 							className="mt-auto"
 						/>
-						<AvailabilitySelector event={e} startSelection={e.availability} />
+						{showAvailabilitySelector(e) ? (
+							<AvailabilitySelector event={e} startSelection={e.availability} />
+						) : undefined}
 					</Event>
 				))}
 			</div>

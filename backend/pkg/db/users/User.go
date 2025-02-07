@@ -177,6 +177,14 @@ func (userName UserName) ChangePassword(password string) (string, error) {
 	}
 }
 
+func (userName UserName) GetTasks() ([]tasks.TaskID, error) {
+	var tasks []tasks.TaskID
+
+	err := db.DB.Select(&tasks, "SELECT taskID FROM USER_TASKS WHERE userName = $1", userName)
+
+	return tasks, err
+}
+
 func (userName UserName) SetTasks(tasks []tasks.TaskID) error {
 	// remove all current possible tasks
 	if _, err := db.DB.Exec("DELETE FROM USER_TASKS WHERE userName = $1", userName); err != nil {

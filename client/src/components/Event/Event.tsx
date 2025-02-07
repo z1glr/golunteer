@@ -43,7 +43,7 @@ export default function Event({
 
 				{Array.isArray(children) ? children[0] : children}
 			</CardBody>
-			{Array.isArray(children) ? (
+			{Array.isArray(children) && !!children[1] ? (
 				<>
 					<Divider />
 					<CardFooter>{children[1]}</CardFooter>

@@ -20,6 +20,16 @@ func (a *Handler) getUsers() {
 	}
 }
 
+func (a *Handler) getUserTasks() {
+	if tasks, err := a.UserName.GetTasks(); err != nil {
+		a.Status = fiber.StatusInternalServerError
+
+		logger.Error().Msgf("getting possible user-tasks failed: %v", err)
+	} else {
+		a.Data = tasks
+	}
+}
+
 func (a *Handler) postUser() {
 
 	// check admin

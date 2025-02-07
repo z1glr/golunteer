@@ -99,6 +99,7 @@ func init() {
 			"events/user/assigned": (*Handler).getEventsUserAssigned,
 			"tasks":                (*Handler).getTasks,          // all available tasks
 			"users":                (*Handler).getUsers,          // all users
+			"user/tasks":           (*Handler).getUserTasks,      // get all possible tasks for the user
 			"availabilities":       (*Handler).getAvailabilities, // all available availabilities
 		},
 		"POST": {
