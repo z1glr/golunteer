@@ -67,7 +67,7 @@ export default function Events() {
 				<Tab key="assigned" title="Assigned" />
 			</Tabs>
 
-			<div className="flex flex-wrap justify-center gap-4">
+			<div className="mx-auto flex flex-wrap gap-4">
 				{events.items.filter(showEvent).map((e) => (
 					<Event key={e.eventID} event={e}>
 						<AssignmentTable

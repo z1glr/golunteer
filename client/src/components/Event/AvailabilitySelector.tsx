@@ -1,6 +1,6 @@
 import { Select, Selection, SelectItem } from "@heroui/react";
 import AvailabilityChip from "../AvailabilityChip";
-import { apiCall, getAvailabilities } from "@/lib";
+import { apiCall, classNames, getAvailabilities } from "@/lib";
 import { useAsyncList } from "@react-stately/data";
 import { EventAvailability } from "@/Zustand";
 import { useState } from "react";
@@ -47,37 +47,38 @@ export default function AvailabilitySelector({
 	}
 
 	return (
-		<Select
-			items={availabilities.items}
-			label={<h4>Availability</h4>}
-			variant="bordered"
-			className={className}
-			classNames={{ label: "text-base", trigger: "py-4" }}
-			labelPlacement="outside"
-			placeholder="Set availability"
-			renderValue={(availability) => (
-				<div>
-					{availability.map((a) =>
-						!!a.data ? (
-							<AvailabilityChip key={a.key} availability={a.data} />
-						) : null,
-					)}
-				</div>
-			)}
-			selectedKeys={value}
-			onSelectionChange={(a) => {
-				void setAvailability(event.eventID, parseInt(a.anchorKey ?? ""));
-				setValue(a);
-			}}
-		>
-			{(availability) => (
-				<SelectItem
-					key={availability.availabilityID}
-					textValue={availability.availabilityName}
-				>
-					<AvailabilityChip availability={availability} />
-				</SelectItem>
-			)}
-		</Select>
+		<div className={classNames(className, "w-full")}>
+			<Select
+				items={availabilities.items}
+				label={<h4>Availability</h4>}
+				variant="bordered"
+				classNames={{ label: "text-base", trigger: "py-4" }}
+				labelPlacement="outside"
+				placeholder="Set availability"
+				renderValue={(availability) => (
+					<div>
+						{availability.map((a) =>
+							!!a.data ? (
+								<AvailabilityChip key={a.key} availability={a.data} />
+							) : null,
+						)}
+					</div>
+				)}
+				selectedKeys={value}
+				onSelectionChange={(a) => {
+					void setAvailability(event.eventID, parseInt(a.anchorKey ?? ""));
+					setValue(a);
+				}}
+			>
+				{(availability) => (
+					<SelectItem
+						key={availability.availabilityID}
+						textValue={availability.availabilityName}
+					>
+						<AvailabilityChip availability={availability} />
+					</SelectItem>
+				)}
+			</Select>
+		</div>
 	);
 }

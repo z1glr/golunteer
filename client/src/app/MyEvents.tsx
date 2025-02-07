@@ -28,15 +28,13 @@ export default function MyEvents() {
 		},
 	});
 
-	console.debug(events);
-
 	return (
 		<div>
 			<h1 className="mb-4 text-center text-4xl">My Events</h1>
 			{events.isLoading ? (
 				<Loading />
 			) : events.items.length > 0 ? (
-				<div className="flex justify-center gap-4">
+				<div className="flex flex-wrap justify-center gap-4">
 					{events.items.map((e) => (
 						<Event key={e.eventID} event={e}>
 							<AssignmentTable

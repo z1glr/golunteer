@@ -36,7 +36,7 @@ export default function PendingEvents() {
 			{events.isLoading ? (
 				<Loading />
 			) : events.items.length > 0 ? (
-				<div className="flex justify-center gap-4">
+				<div className="flex flex-wrap justify-center gap-4">
 					{events.items.map((e) => (
 						<Event key={e.eventID} event={e}>
 							<AvailabilitySelector event={e} className="mt-auto" />
