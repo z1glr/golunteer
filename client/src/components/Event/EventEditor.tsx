@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import {
 	getLocalTimeZone,
 	now,
@@ -21,6 +21,7 @@ import { EventData } from "@/Zustand";
 import { useAsyncList } from "@react-stately/data";
 import { getTasks } from "@/lib";
 import Loading from "../Loading";
+import { getHotkeyHandler } from "@mantine/hooks";
 
 export interface EventSubmitData {
 	eventID: number;
@@ -49,6 +50,7 @@ export default function EventEditor(props: {
 	const [eventTasks, setEventTasks] = useState<string[]>(
 		props.value?.tasks.map((k) => k.taskID.toString()) ?? [],
 	);
+	const submitButtonRef = useRef<HTMLButtonElement>(null);
 
 	const tasks = useAsyncList({
 		async load() {
@@ -108,6 +110,9 @@ export default function EventEditor(props: {
 							name="description"
 							value={description}
 							onValueChange={setDescription}
+							onKeyDown={getHotkeyHandler([
+								["ctrl+Enter", () => submitButtonRef.current?.click()],
+							])}
 						/>
 						<CheckboxGroup
 							name="tasks"
@@ -132,7 +137,10 @@ export default function EventEditor(props: {
 							)}
 						</CheckboxGroup>
 					</ModalBody>
-					<ModalFooter>{props.footer}</ModalFooter>
+					<ModalFooter>
+						<button ref={submitButtonRef} type="submit" className="hidden" />
+						{props.footer}
+					</ModalFooter>
 				</ModalContent>
 			</Form>
 		</Modal>
