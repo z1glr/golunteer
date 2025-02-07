@@ -175,10 +175,10 @@ export default function Users() {
 					!isOpen ? setEditUser(undefined) : undefined
 				}
 				onSuccess={() => {
-					users.reload();
-
 					// clear the users first from the zustand
 					zustand.getState().patch({ users: undefined });
+
+					users.reload();
 
 					setEditUser(undefined);
 				}}
