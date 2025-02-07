@@ -101,7 +101,9 @@ export default function UserEditor(props: {
 						<Input
 							isRequired={props.isPasswordRequired}
 							label="Password"
-							color={password.length > 0 ? "warning" : "default"}
+							color={
+								password.length > 0 && !!props.value ? "warning" : "default"
+							}
 							name="password"
 							variant="bordered"
 							value={password}
