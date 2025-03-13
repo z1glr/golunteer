@@ -129,9 +129,9 @@ export default function VolunteerSelector({
 							}}
 							title={
 								(
-									<AvailabilityChip
-										availability={getAvailabilityById(parseInt(availabilityId))}
-									/>
+									<AvailabilityChip>
+										{getAvailabilityById(parseInt(availabilityId))}
+									</AvailabilityChip>
 								) as ReactElement & string
 							}
 						>

@@ -1,5 +1,6 @@
 # TODO
 
-- readme text
-- check enter pressing on modals
-- add control-enter on event-description
+-   readme text
+-   check enter pressing on modals
+-   add availability table
+-   add availability notes

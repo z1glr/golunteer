@@ -14,11 +14,17 @@ export type EventAvailability = BaseEvent & {
 	availability: number;
 };
 
+export type EventAvailabilities = BaseEvent & {
+	availabilities: Record<number, string[]>;
+};
+
 export type EventData = BaseEvent & {
 	tasks: TaskAssignment[];
 };
 
-export type EventDataWithAvailability = EventData & EventAvailability;
+export type EventDataWithAvailabilityAvailabilities = EventData &
+	EventAvailability &
+	EventAvailabilities;
 
 export interface TaskAssignment {
 	taskID: number;

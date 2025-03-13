@@ -1,13 +1,6 @@
 import { classNames } from "@/lib";
 import { EventData } from "@/Zustand";
-import {
-	Table,
-	TableBody,
-	TableCell,
-	TableColumn,
-	TableHeader,
-	TableRow,
-} from "@heroui/react";
+import { Fragment } from "react";
 
 export default function AssignmentTable({
 	tasks,
@@ -23,40 +16,27 @@ export default function AssignmentTable({
 	return (
 		<div className={className}>
 			<h4 id="assignmentTableHeader">Tasks</h4>
-			<Table
-				aria-labelledby="assignmentTableHeader"
-				hideHeader
-				removeWrapper
-				classNames={{
-					td: "text-base",
-				}}
-				shadow="none"
-				title="Tasks"
-			>
-				<TableHeader>
-					<TableColumn>Task</TableColumn>
-					<TableColumn>Volunteer</TableColumn>
-				</TableHeader>
-				<TableBody items={tasks}>
-					{(task) => (
-						<TableRow
-							key={task.taskID}
-							className={classNames({
-								"text-danger":
-									task.userName === highlightUser ||
-									task.taskName === highlightTask,
-							})}
+			<div className="grid grid-cols-[auto_1fr] items-center gap-x-4 gap-y-2">
+				{tasks.map((task) => (
+					<Fragment key={task.taskID}>
+						<div
+							className={classNames(
+								classNames({
+									"text-danger":
+										task.userName === highlightUser ||
+										task.taskName === highlightTask,
+								}),
+								"text-sm font-bold",
+							)}
 						>
-							<TableCell className="font-bold">{task.taskName}</TableCell>
-							<TableCell>
-								{task.userName ?? (
-									<span className="italic text-highlight">missing</span>
-								)}
-							</TableCell>
-						</TableRow>
-					)}
-				</TableBody>
-			</Table>
+							{task.taskName}
+						</div>
+						{task.userName ?? (
+							<span className="text-sm italic text-highlight">missing</span>
+						)}
+					</Fragment>
+				))}
+			</div>
 		</div>
 	);
 }

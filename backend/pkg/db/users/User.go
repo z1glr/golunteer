@@ -130,11 +130,11 @@ func (userName UserName) WithUserAvailability() ([]events.EventWithAssignmentsUs
 	} else {
 		// get the assignments for every event
 		for ii, event := range events {
-			if eventWithAssignments, err := event.EventWithAssignments.EventData.WithAssignments(); err != nil {
+			if eventWithAssignments, err := event.EventWithAssignments.EventData.WithAvailabilities(); err != nil {
 				// remove the current event from the events
 				events = append(events[:ii], events[ii+1:]...)
 			} else {
-				events[ii].EventWithAssignments = eventWithAssignments
+				events[ii].EventWithAvailabilities = eventWithAssignments
 			}
 		}
 

@@ -9,10 +9,12 @@ export default function AvailabilitySelector({
 	event,
 	className,
 	startSelection,
+	onRefresh,
 }: {
 	event: EventAvailability;
 	className?: string;
 	startSelection?: number;
+	onRefresh?: () => void;
 }) {
 	const [value, setValue] = useState<Selection>(new Set([]));
 
@@ -38,12 +40,16 @@ export default function AvailabilitySelector({
 	});
 
 	async function setAvailability(eventID: number, availabilityID: number) {
-		await apiCall(
+		const request = await apiCall(
 			"PUT",
 			"events/user/availability",
 			{ eventID },
 			availabilityID,
 		);
+
+		if (request.ok) {
+			onRefresh?.();
+		}
 	}
 
 	return (
@@ -59,7 +65,7 @@ export default function AvailabilitySelector({
 					<div>
 						{availability.map((a) =>
 							!!a.data ? (
-								<AvailabilityChip key={a.key} availability={a.data} />
+								<AvailabilityChip key={a.key}>{a.data}</AvailabilityChip>
 							) : null,
 						)}
 					</div>
@@ -75,7 +81,7 @@ export default function AvailabilitySelector({
 						key={availability.availabilityID}
 						textValue={availability.availabilityName}
 					>
-						<AvailabilityChip availability={availability} />
+						<AvailabilityChip>{availability}</AvailabilityChip>
 					</SelectItem>
 				)}
 			</Select>

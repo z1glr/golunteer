@@ -3,21 +3,21 @@ import { color2Tailwind } from "./Colorselector";
 import { Availability } from "@/app/admin/(availabilities)/AvailabilityEditor";
 
 export default function AvailabilityChip({
-	availability,
+	children,
 	className,
 }: {
-	availability?: Availability;
+	children?: Availability;
 	className?: string;
 	classNames?: ChipProps["classNames"];
 }) {
-	return !!availability ? (
+	return !!children ? (
 		<Chip
 			classNames={{
-				base: `bg-${color2Tailwind(availability.color)}`,
+				base: `bg-${color2Tailwind(children.color)}`,
 			}}
 			className={className}
 		>
-			{availability.availabilityName}
+			{children.availabilityName}
 		</Chip>
 	) : null;
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import AssignmentTable from "@/components/Event/AssignmentTable";
+import AssignmentGrid from "@/components/Event/AssignmentTable";
 import Event from "@/components/Event/Event";
 import Loading from "@/components/Loading";
 import { apiCall } from "@/lib";
@@ -37,7 +37,7 @@ export default function MyEvents() {
 				<div className="flex flex-wrap justify-center gap-4">
 					{events.items.map((e) => (
 						<Event key={e.eventID} event={e}>
-							<AssignmentTable
+							<AssignmentGrid
 								className="mt-auto"
 								tasks={e.tasks}
 								highlightUser={user?.userName}

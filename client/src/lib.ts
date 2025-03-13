@@ -194,6 +194,8 @@ export async function getAvailabilities(): Promise<Availability[]> {
 
 			state.patch({ availabilities });
 
+			console.debug(zustand.getState().availabilities);
+
 			return availabilities;
 		} else {
 			return [];

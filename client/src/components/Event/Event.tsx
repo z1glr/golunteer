@@ -7,9 +7,11 @@ import React from "react";
 
 export default function Event({
 	event,
+	hideDescription,
 	children,
 }: {
 	event: BaseEvent;
+	hideDescription?: boolean;
 	children?: React.ReactNode | [React.ReactNode, React.ReactNode];
 }) {
 	return (
@@ -34,7 +36,7 @@ export default function Event({
 			</CardHeader>
 			<Divider />
 			<CardBody>
-				{event.description != "" ? (
+				{event.description != "" && !hideDescription ? (
 					<div>
 						<h4>Description</h4>
 						<div className="ms-2 mt-2">{event.description}</div>

@@ -26,7 +26,7 @@ export default function EditAvailability(props: {
 				<>
 					Edit Availability{" "}
 					{!!props.value ? (
-						<AvailabilityChip availability={props.value} className="ms-4" />
+						<AvailabilityChip className="ms-4">{props.value}</AvailabilityChip>
 					) : null}
 				</>
 			}

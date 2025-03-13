@@ -48,7 +48,7 @@ type EventWithAvailabilities struct {
 }
 
 type EventWithAssignmentsUserAvailability struct {
-	EventWithAssignments
+	EventWithAvailabilities
 	Availability *int `json:"availability" db:"availabilityID"`
 }
 
@@ -71,10 +71,10 @@ func (e EventData) WithAssignments() (EventWithAssignments, error) {
 	}
 }
 
-func (e EventWithAssignments) WithUserAvailability(userName string) (EventWithAssignmentsUserAvailability, error) {
+func (e EventWithAvailabilities) WithUserAvailability(userName string) (EventWithAssignmentsUserAvailability, error) {
 	// get the availability of the user
 	event := EventWithAssignmentsUserAvailability{
-		EventWithAssignments: e,
+		EventWithAvailabilities: e,
 	}
 
 	if err := db.DB.Select(&event, "SELECT availabilityID FROM USER_AVAILABILITIES WHERE eventID = $1 AND userName = $2", e.EventID, userName); err != nil {

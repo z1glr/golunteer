@@ -137,7 +137,7 @@ export default function Availabilities() {
 					{(availability) => (
 						<TableRow key={availability.availabilityName}>
 							<TableCell>
-								<AvailabilityChip availability={availability} />
+								<AvailabilityChip>{availability}</AvailabilityChip>
 							</TableCell>
 							<TableCell>
 								<Checkbox isSelected={availability.enabled} />
@@ -199,7 +199,7 @@ export default function Availabilities() {
 				{!!deleteAvailability ? (
 					<>
 						The availability{" "}
-						<AvailabilityChip availability={deleteAvailability} /> will be
+						<AvailabilityChip>{deleteAvailability}</AvailabilityChip>
 						deleted.
 					</>
 				) : null}

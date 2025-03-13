@@ -80,17 +80,12 @@ func (a *Handler) getEventsAssignments() {
 }
 
 func (a *Handler) getEventsAvailabilities() {
-	// check for admin
-	if !a.Admin {
-		a.Status = fiber.StatusForbidden
-	} else {
-		if events, err := events.WithAvailabilities(); err != nil {
-			a.Status = fiber.StatusInternalServerError
+	if events, err := events.WithAvailabilities(); err != nil {
+		a.Status = fiber.StatusInternalServerError
 
-			logger.Error().Msgf("can't retrieve events with availabilities: %v", err)
-		} else {
-			a.Data = events
-		}
+		logger.Error().Msgf("can't retrieve events with availabilities: %v", err)
+	} else {
+		a.Data = events
 	}
 }
 
