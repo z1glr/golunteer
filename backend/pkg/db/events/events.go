@@ -220,7 +220,7 @@ func Update(event EventPatch) error {
 func All() ([]EventData, error) {
 	var dbRows []EventData
 
-	if err := db.DB.Select(&dbRows, "SELECT * FROM EVENTS"); err != nil {
+	if err := db.DB.Select(&dbRows, "SELECT * FROM EVENTS ORDER BY date"); err != nil {
 		return nil, err
 	} else {
 		return dbRows, nil

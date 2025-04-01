@@ -125,7 +125,7 @@ func (u *UserDB) ToUser() (User, error) {
 func (userName UserName) WithUserAvailability() ([]events.EventWithAssignmentsUserAvailability, error) {
 	var events []events.EventWithAssignmentsUserAvailability
 
-	if err := db.DB.Select(&events, "SELECT EVENTS.eventID, EVENTS.description, EVENTS.date, USER_AVAILABILITIES.availabilityID FROM EVENTS LEFT JOIN USER_AVAILABILITIES ON EVENTS.eventID = USER_AVAILABILITIES.eventID AND USER_AVAILABILITIES.userName = $1", userName); err != nil {
+	if err := db.DB.Select(&events, "SELECT EVENTS.eventID, EVENTS.description, EVENTS.date, USER_AVAILABILITIES.availabilityID FROM EVENTS LEFT JOIN USER_AVAILABILITIES ON EVENTS.eventID = USER_AVAILABILITIES.eventID AND USER_AVAILABILITIES.userName = $1 ORDER BY date", userName); err != nil {
 		return nil, err
 	} else {
 		// get the assignments for every event
@@ -256,7 +256,7 @@ func (userName UserName) GetAssignedEvents() ([]events.EventWithAssignments, err
 	var eventsDB []events.EventData
 
 	// get all the events where the volunteer is assigned a task
-	if err := db.DB.Select(&eventsDB, "SELECT DISTINCT EVENTS.date, EVENTS.description, EVENTS.eventID FROM USER_ASSIGNMENTS INNER JOIN EVENTS ON USER_ASSIGNMENTS.eventID = EVENTS.eventID WHERE userName = $1 AND EVENTS.date > datetime('now')", userName); err != nil {
+	if err := db.DB.Select(&eventsDB, "SELECT DISTINCT EVENTS.date, EVENTS.description, EVENTS.eventID FROM USER_ASSIGNMENTS INNER JOIN EVENTS ON USER_ASSIGNMENTS.eventID = EVENTS.eventID WHERE userName = $1 AND EVENTS.date > datetime('now') ORDER BY EVENTS.date", userName); err != nil {
 		return nil, err
 	} else {
 		// for each event create an event with assignments
