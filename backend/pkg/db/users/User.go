@@ -230,7 +230,7 @@ func (userName UserName) UserPending() ([]events.EventData, error) {
 		WHERE USER_TASKS.userName = $1
 		AND USER_ASSIGNMENTS.eventID = EVENTS.eventID
 	)
-	AND date > datetime('now')`, userName); err != nil {
+	AND date > datetime('now') ORDER BY date`, userName); err != nil {
 		return nil, err
 	} else {
 		return result, nil
