@@ -136,13 +136,15 @@ func init() {
 	app.Use(func(c *fiber.Ctx) error {
 		path := c.Path()
 
-		if _, err := os.Stat(filepath.Join("html", path)); errors.Is(err, os.ErrNotExist) {
-			htmlPath := path + ".html"
+		// if it is for the api, don't try to add the html extension
+		if path[1:4] != "dev" {
+			// check, wether a html-file exists for the path
+			if _, err := os.Stat(filepath.Join("html", path)); errors.Is(err, os.ErrNotExist) {
+				htmlPath := path + ".html"
 
-			if _, err := os.Stat(filepath.Join("html", htmlPath)); err == nil {
-				c.Path(htmlPath)
-			} else {
-				logger.Debug().Msgf("%q", err)
+				if _, err := os.Stat(filepath.Join("html", htmlPath)); err == nil {
+					c.Path(htmlPath)
+				}
 			}
 		}
 
