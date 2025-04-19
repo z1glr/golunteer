@@ -137,7 +137,7 @@ func init() {
 		path := c.Path()
 
 		// if it is for the api, don't try to add the html extension
-		if path[1:4] != "dev" {
+		if len(path) < 4 || path[1:4] != "dev" {
 			// check, wether a html-file exists for the path
 			if _, err := os.Stat(filepath.Join("html", path)); errors.Is(err, os.ErrNotExist) {
 				htmlPath := path + ".html"
