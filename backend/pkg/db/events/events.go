@@ -217,10 +217,18 @@ func Update(event EventPatch) error {
 	}
 }
 
-func All() ([]EventData, error) {
+func All(args ...string) ([]EventData, error) {
+	var since string
+
+	if len(args) > 0 && args[0] != "" {
+		since = args[0]
+	} else {
+		since = "0000-00-00"
+	}
+
 	var dbRows []EventData
 
-	if err := db.DB.Select(&dbRows, "SELECT * FROM EVENTS ORDER BY date"); err != nil {
+	if err := db.DB.Select(&dbRows, "SELECT * FROM EVENTS WHERE date >= $1 ORDER BY date", since); err != nil {
 		return nil, err
 	} else {
 		return dbRows, nil
@@ -246,9 +254,9 @@ func WithAssignments() ([]EventWithAssignments, error) {
 	}
 }
 
-func WithAvailabilities() ([]EventWithAvailabilities, error) {
+func WithAvailabilities(since string) ([]EventWithAvailabilities, error) {
 	// get all events
-	if eventsDB, err := All(); err != nil {
+	if eventsDB, err := All(since); err != nil {
 		return nil, err
 	} else {
 		events := make([]EventWithAvailabilities, len(eventsDB))

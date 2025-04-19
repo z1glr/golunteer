@@ -32,6 +32,10 @@ export default function RootLayout({
 			href: "/events",
 		},
 		{
+			text: "Availabilities",
+			href: "/availabilities",
+		},
+		{
 			text: "Assignments",
 			href: "/assignments",
 			admin: true,

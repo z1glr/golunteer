@@ -3,7 +3,7 @@
 import AddEvent from "@/components/Event/AddEvent";
 import EditEvent from "@/components/Event/EditEvent";
 import LocalDate from "@/components/LocalDate";
-import { apiCall, getAvailabilities, getTasks } from "@/lib";
+import { apiCall, getAvailabilities, getTasks, QueryParams } from "@/lib";
 import { EventData } from "@/Zustand";
 import {
 	Add,
@@ -16,6 +16,7 @@ import {
 import {
 	Button,
 	ButtonGroup,
+	DateValue,
 	Modal,
 	ModalBody,
 	ModalContent,
@@ -34,6 +35,9 @@ import { useAsyncList } from "@react-stately/data";
 import React, { Key, useEffect, useState } from "react";
 import { Availability } from "../admin/(availabilities)/AvailabilityEditor";
 import VolunteerSelector from "./VolunteerSelector";
+import { getLocalTimeZone, today } from "@internationalized/date";
+import DateEventsSince from "@/components/DateEventsSince";
+import FilterPopover from "@/components/FilterPopover";
 
 export type EventWithAvailabilities = EventData & {
 	availabilities: Record<string, string[]>;
@@ -41,6 +45,9 @@ export type EventWithAvailabilities = EventData & {
 
 export default function AdminPanel() {
 	const [showAddEvent, setShowAddEvent] = useState(false);
+	const [sinceDate, setSinceDate] = useState<DateValue | null>(
+		today(getLocalTimeZone()),
+	);
 	const [editEvent, setEditEvent] = useState<EventData | undefined>();
 	const [deleteEvent, setDeleteEvent] = useState<EventData | undefined>();
 	const [availabilityMap, setAvailabilityMap] = useState<
@@ -78,9 +85,18 @@ export default function AdminPanel() {
 	// get the individual events
 	const events = useAsyncList<EventWithAvailabilities>({
 		async load() {
+			let params: QueryParams | undefined = undefined;
+
+			if (sinceDate) {
+				params = {
+					since: sinceDate,
+				};
+			}
+
 			const result = await apiCall<EventWithAvailabilities[]>(
 				"GET",
 				"events/availabilities",
+				params,
 			);
 
 			if (result.ok) {
@@ -124,6 +140,9 @@ export default function AdminPanel() {
 			);
 		})();
 	}, []);
+
+	// eslint-disable-next-line react-hooks/exhaustive-deps
+	useEffect(() => void events.reload(), [sinceDate]);
 
 	function getAvailabilityById(availabilityID: number): Availability {
 		return availabilityMap[availabilityID];
@@ -218,14 +237,19 @@ export default function AdminPanel() {
 	}
 
 	const topContent = (
-		<div>
-			<Button
-				color="primary"
-				startContent={<Add size={32} />}
-				onPress={() => setShowAddEvent(true)}
-			>
-				Add
-			</Button>
+		<div className="flex items-center">
+			<div>
+				<Button
+					color="primary"
+					startContent={<Add size={32} />}
+					onPress={() => setShowAddEvent(true)}
+				>
+					Add
+				</Button>
+			</div>
+			<FilterPopover className="ml-auto">
+				<DateEventsSince sinceDate={sinceDate} setSinceDate={setSinceDate} />
+			</FilterPopover>
 		</div>
 	);
 

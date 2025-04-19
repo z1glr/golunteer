@@ -6,12 +6,7 @@ import (
 )
 
 func (a *Handler) getUsers() {
-	// check admin
-	if !a.Admin {
-		a.Status = fiber.StatusForbidden
-
-		logger.Info().Msgf("user is no admin")
-	} else if users, err := users.Get(); err != nil {
+	if users, err := users.Get(); err != nil {
 		a.Status = fiber.StatusInternalServerError
 
 		logger.Error().Msgf("can't get users: %v", err)

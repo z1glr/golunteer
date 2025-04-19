@@ -80,7 +80,10 @@ func (a *Handler) getEventsAssignments() {
 }
 
 func (a *Handler) getEventsAvailabilities() {
-	if events, err := events.WithAvailabilities(); err != nil {
+	// get the "since"-query-parameter
+	since := a.C.Query("since")
+
+	if events, err := events.WithAvailabilities(since); err != nil {
 		a.Status = fiber.StatusInternalServerError
 
 		logger.Error().Msgf("can't retrieve events with availabilities: %v", err)
@@ -91,7 +94,7 @@ func (a *Handler) getEventsAvailabilities() {
 
 func (a *Handler) getEventUserAssignmentAvailability() {
 	// retrieve the assignments
-	if events, err := a.UserName.WithUserAvailability(); err != nil {
+	if events, err := a.UserName.WithUserAvailability(a.C.Query("since")); err != nil {
 		a.Status = fiber.StatusBadRequest
 
 		logger.Info().Msgf("getting events with tasks and user-availability failed: %v", err)

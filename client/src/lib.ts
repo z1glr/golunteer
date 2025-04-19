@@ -4,7 +4,7 @@ import { Availability } from "./app/admin/(availabilities)/AvailabilityEditor";
 
 export type AllString<T> = { [K in keyof T]: string };
 
-type QueryParams = Record<string, string | { toString(): string }>;
+export type QueryParams = Record<string, string | { toString(): string }>;
 
 type Body = object | string | number | boolean;
 

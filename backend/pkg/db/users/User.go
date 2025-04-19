@@ -122,10 +122,18 @@ func (u *UserDB) ToUser() (User, error) {
 	}
 }
 
-func (userName UserName) WithUserAvailability() ([]events.EventWithAssignmentsUserAvailability, error) {
+func (userName UserName) WithUserAvailability(args ...string) ([]events.EventWithAssignmentsUserAvailability, error) {
+	var since string
+
+	if len(args) > 0 && args[0] != "" {
+		since = args[0]
+	} else {
+		since = "0000-00-00"
+	}
+
 	var events []events.EventWithAssignmentsUserAvailability
 
-	if err := db.DB.Select(&events, "SELECT EVENTS.eventID, EVENTS.description, EVENTS.date, USER_AVAILABILITIES.availabilityID FROM EVENTS LEFT JOIN USER_AVAILABILITIES ON EVENTS.eventID = USER_AVAILABILITIES.eventID AND USER_AVAILABILITIES.userName = $1 ORDER BY date", userName); err != nil {
+	if err := db.DB.Select(&events, "SELECT EVENTS.eventID, EVENTS.description, EVENTS.date, USER_AVAILABILITIES.availabilityID FROM EVENTS LEFT JOIN USER_AVAILABILITIES ON EVENTS.eventID = USER_AVAILABILITIES.eventID AND USER_AVAILABILITIES.userName = $1 WHERE EVENTS.date >= $2 ORDER BY date", userName, since); err != nil {
 		return nil, err
 	} else {
 		// get the assignments for every event

@@ -9,11 +9,13 @@ export default function AvailabilitySelector({
 	event,
 	className,
 	startSelection,
+	noHeader,
 	onRefresh,
 }: {
 	event: EventAvailability;
 	className?: string;
 	startSelection?: number;
+	noHeader?: boolean;
 	onRefresh?: () => void;
 }) {
 	const [value, setValue] = useState<Selection>(new Set([]));
@@ -55,8 +57,9 @@ export default function AvailabilitySelector({
 	return (
 		<div className={classNames(className, "w-full")}>
 			<Select
+				aria-label="Select availability"
 				items={availabilities.items}
-				label={<h4>Availability</h4>}
+				label={!noHeader ? <h4>Availability</h4> : null}
 				variant="bordered"
 				classNames={{ label: "text-base", trigger: "py-4" }}
 				labelPlacement="outside"

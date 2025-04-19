@@ -2,23 +2,25 @@
 import AddEvent from "@/components/Event/AddEvent";
 import AssigmentTable from "@/components/Event/AssignmentTable";
 import Event from "@/components/Event/Event";
-import { apiCall, getAvailabilities, getUserTasks } from "@/lib";
+import { apiCall, getAvailabilities, getUserTasks, QueryParams } from "@/lib";
 import zustand, { EventDataWithAvailabilityAvailabilities } from "@/Zustand";
-import { Add, Filter } from "@carbon/icons-react";
+import { Add } from "@carbon/icons-react";
 import {
 	Button,
 	Checkbox,
 	CheckboxGroup,
-	Popover,
-	PopoverContent,
-	PopoverTrigger,
+	DateValue,
+	Divider,
 	Tab,
 	Tabs,
 } from "@heroui/react";
 import { useAsyncList } from "@react-stately/data";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import AvailabilitySelector from "@/components/Event/AvailabilitySelector";
 import AvailabilityTable from "@/components/Event/AvailabilityTable";
+import DateEventsSince from "@/components/DateEventsSince";
+import { getLocalTimeZone, today } from "@internationalized/date";
+import FilterPopover from "@/components/FilterPopover";
 
 const filterValues: { text: string; value: string }[] = [
 	{
@@ -39,14 +41,26 @@ export default function Events() {
 	const [showAddItemDialogue, setShowAddItemDialogue] = useState(false);
 	const [filter, setFilter] = useState<string | number>("all");
 	const [contentFilter, setContentFilter] = useState(["description", "tasks"]);
+	const [sinceDate, setSinceDate] = useState<DateValue | null>(
+		today(getLocalTimeZone()),
+	);
 
 	const user = zustand((state) => state.user);
 
 	const events = useAsyncList({
 		async load() {
+			let params: QueryParams | undefined = undefined;
+
+			if (sinceDate) {
+				params = {
+					since: sinceDate,
+				};
+			}
+
 			const result = await apiCall<EventDataWithAvailabilityAvailabilities[]>(
 				"GET",
 				"events/user/assignmentAvailability",
+				params,
 			);
 
 			if (result.ok) {
@@ -78,6 +92,9 @@ export default function Events() {
 			};
 		},
 	});
+
+	// eslint-disable-next-line react-hooks/exhaustive-deps
+	useEffect(() => void events.reload(), [sinceDate]);
 
 	function showEvent(event: EventDataWithAvailabilityAvailabilities): boolean {
 		switch (filter) {
@@ -115,27 +132,17 @@ export default function Events() {
 					<Tab key="pending" title="Pending" />
 					<Tab key="assigned" title="Assigned" />
 				</Tabs>
-				<div className="absolute right-0">
-					<Popover placement="bottom-end">
-						<PopoverTrigger>
-							<Button isIconOnly>
-								<Filter className="cursor-pointer" />
-							</Button>
-						</PopoverTrigger>
-						<PopoverContent>
-							<CheckboxGroup
-								value={contentFilter}
-								onValueChange={setContentFilter}
-							>
-								{filterValues.map((f) => (
-									<Checkbox key={f.value} value={f.value}>
-										{f.text}
-									</Checkbox>
-								))}
-							</CheckboxGroup>
-						</PopoverContent>
-					</Popover>
-				</div>
+				<FilterPopover className="absolute right-0">
+					<CheckboxGroup value={contentFilter} onValueChange={setContentFilter}>
+						{filterValues.map((f) => (
+							<Checkbox key={f.value} value={f.value}>
+								{f.text}
+							</Checkbox>
+						))}
+					</CheckboxGroup>
+					<Divider />
+					<DateEventsSince sinceDate={sinceDate} setSinceDate={setSinceDate} />
+				</FilterPopover>
 			</div>
 
 			<div className="mx-auto flex flex-wrap gap-4">

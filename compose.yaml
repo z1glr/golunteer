@@ -6,6 +6,8 @@ services:
       - database:/usr/bin/app/data
       - logs:/usr/bin/app/logs
     restart: unless-stopped
+    ports:
+      - 80:80
   
 volumes:
   database:
